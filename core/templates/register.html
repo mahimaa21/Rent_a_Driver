@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Register - Rent a Driver{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <div class="form-container">
+    <h2>Create an Account</h2>
+
+    <form method="post" action="{% url 'register' %}">
+      {% csrf_token %}
+      <label>Username</label>
+      <input type="text" name="username" placeholder="Enter username" required />
+
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Enter password" required />
+
+      <label>Role</label>
+      <select name="role" required>
+        <option value="">-- Select Role --</option>
+        <option value="customer">Customer</option>
+        <option value="driver">Driver</option>
+      </select>
+
+      <button type="submit" class="btn btn-primary">Register</button>
+    </form>
+
+    <p class="redirect-text">
+      Already have an account? <a href="{% url 'login' %}">Login here</a>.
+    </p>
+
+    {% if messages %}
+      <ul class="msg">
+        {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
