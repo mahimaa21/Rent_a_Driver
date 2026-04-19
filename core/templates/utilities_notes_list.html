@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Notes - Utilities{% endblock %}
+{% block content %}
+<section class="dashboard container">
+  <h2>Utilities Notes</h2>
+  <p><a class="btn btn-primary" href="{% url 'utilities_notes_create' %}">+ New Note</a></p>
+  <ul class="list">
+    {% for n in notes %}
+      <li>
+        <div>
+          <strong>{{ n.title }}</strong>
+          <small>· updated {{ n.updated_at|date:"Y-m-d H:i" }}</small>
+          <p style="margin:.25rem 0 0;">{{ n.body|default:"(no content)" }}</p>
+        </div>
+        <div style="margin-top:.25rem; display:flex; gap:.5rem;">
+          <a class="btn btn-secondary" href="{% url 'utilities_notes_edit' n.id %}">Edit</a>
+          <form method="post" action="{% url 'utilities_notes_delete' n.id %}">
+            {% csrf_token %}
+            <button class="btn btn-secondary" type="submit">Delete</button>
+          </form>
+        </div>
+      </li>
+    {% empty %}
+      <li>No notes yet.</li>
+    {% endfor %}
+  </ul>
+  {% if messages %}
+    <ul class="msg">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
+  {% endif %}
+</section>
+{% endblock %}
