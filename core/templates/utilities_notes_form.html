@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{% if note %}Edit Note{% else %}New Note{% endif %} - Utilities{% endblock %}
+{% block content %}
+<section class="form-section">
+  <div class="form-container">
+    <h2>{% if note %}Edit Note{% else %}New Note{% endif %}</h2>
+    <form method="post" action="">
+      {% csrf_token %}
+      <label>Title</label>
+      <input type="text" name="title" value="{% if note %}{{ note.title }}{% endif %}" required />
+      <label>Body</label>
+      <textarea name="body" rows="6">{% if note %}{{ note.body }}{% endif %}</textarea>
+      <div style="margin-top:.75rem; display:flex; gap:.5rem;">
+        <button class="btn btn-primary" type="submit">Save</button>
+        <a class="btn btn-secondary" href="{% url 'utilities_notes_list' %}">Cancel</a>
+      </div>
+    </form>
+    {% if messages %}
+      <ul class="msg">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
