@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Driver Profile Setup - Rent a Driver{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <div class="form-container">
+  <h2>Driver Profile</h2>
+  <p>Create or update your driver profile details.</p>
+
+    <form method="post" action="{% url 'driver_profile' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <label>Full Name</label>
+      <input type="text" name="full_name" placeholder="Your full name" value="{% if profile %}{{ profile.full_name }}{% endif %}" />
+
+      <label>National ID Number (NID)</label>
+      <input type="text" name="nid_number" placeholder="Enter NID number" value="{% if profile %}{{ profile.nid_number }}{% endif %}" required />
+
+      <label>Profile Picture</label>
+      {% if profile and profile.profile_picture %}
+        <div class="current-photo">
+          <img src="{{ profile.profile_picture.url }}" alt="Current photo" style="max-width: 160px; border-radius: 8px; display:block; margin-bottom:.5rem;" />
+        </div>
+      {% endif %}
+      <input type="file" name="profile_picture" accept="image/*" />
+
+      <label>License Number</label>
+      <input type="text" name="license" placeholder="Enter license number" value="{% if profile %}{{ profile.license_number }}{% endif %}" required />
+
+      <label>Vehicle Details</label>
+      <input type="text" name="vehicle" placeholder="Enter vehicle details" value="{% if profile %}{{ profile.vehicle_details }}{% endif %}" required />
+
+      <label>Address</label>
+      <input type="text" name="address" placeholder="Your address" value="{% if profile %}{{ profile.address }}{% endif %}" />
+
+  <label>Current Latitude (optional)</label>
+  <input id="drvLat" type="number" name="lat" step="any" placeholder="e.g. 23.8103" value="{% if profile %}{{ profile.current_lat }}{% endif %}" />
+
+  <label>Current Longitude (optional)</label>
+  <input id="drvLng" type="number" name="lng" step="any" placeholder="e.g. 90.4125" value="{% if profile %}{{ profile.current_lng }}{% endif %}" />
+  <button type="button" class="btn btn-secondary" id="drvGeoBtn" style="margin-top:.5rem;">Use my location</button>
+
+      <button type="submit" class="btn btn-primary">Save Profile</button>
+    </form>
+
+    {% if profile and profile.profile_picture %}
+      <form method="post" action="{% url 'delete_profile_picture' %}" style="margin-top:.5rem;">
+        {% csrf_token %}
+        <button class="btn btn-secondary" type="submit">Remove Photo</button>
+      </form>
+    {% endif %}
+
+    {% if messages %}
+      <ul class="msg">
+        {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</section>
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('drvGeoBtn');
+    const lat = document.getElementById('drvLat');
+    const lng = document.getElementById('drvLng');
+    if (btn && lat && lng) {
+      btn.addEventListener('click', function() {
+        if (!navigator.geolocation) {
+          alert('Geolocation not supported by your browser.');
+          return;
+        }
+        btn.disabled = true;
+        const original = btn.textContent;
+        btn.textContent = 'Detecting…';
+        navigator.geolocation.getCurrentPosition(function(pos){
+          lat.value = pos.coords.latitude.toFixed(6);
+          lng.value = pos.coords.longitude.toFixed(6);
+          btn.textContent = 'Detected ✓';
+          btn.disabled = false;
+        }, function(err){
+          alert('Could not get location: ' + err.message);
+          btn.disabled = false;
+          btn.textContent = original;
+        }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+      });
+    }
+  });
+</script>
+{% endblock %}
+{% endblock %}
