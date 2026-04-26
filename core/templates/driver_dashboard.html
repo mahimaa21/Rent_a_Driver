@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Driver Dashboard - Rent a Driver{% endblock %}
+
+{% block content %}
+<section class="dashboard-page">
+  <div class="dashboard-container">
+    
+    <div class="dashboard-left">
+  <h2>Welcome, {{ request.user.username }} 👨‍✈️</h2>
+      <div class="info-card">
+        <p><strong>Total Rides Completed:</strong> <span id="totalRides">{{ total_completed|default:0 }}</span></p>
+        <p><strong>Ongoing Rides:</strong> <span id="ongoingRides">{{ total_ongoing|default:0 }}</span></p>
+      </div>
+
+      
+      <div class="card" style="margin-top:1rem;">
+        <h3>Your Profile</h3>
+        {% if request.user.driverprofile %}
+          <div class="flex" style="gap:1rem; align-items:center;">
+            {% if request.user.driverprofile.profile_picture %}
+              <img src="{{ request.user.driverprofile.profile_picture.url }}" alt="Profile" style="width:64px;height:64px;border-radius:8px;object-fit:cover;" />
+            {% endif %}
+            <div>
+              <p><strong>{{ request.user.driverprofile.full_name|default:request.user.username }}</strong></p>
+              {% if request.user.driverprofile.address %}
+                <p class="text-sm">{{ request.user.driverprofile.address }}</p>
+              {% endif %}
+              <p class="text-sm">License: {{ request.user.driverprofile.license_number }}</p>
+              <p class="text-sm">Vehicle: {{ request.user.driverprofile.vehicle_details }}</p>
+            </div>
+          </div>
+        {% else %}
+          <p>No profile yet.</p>
+        {% endif %}
+        <div style="margin-top:.5rem;">
+          <a href="{% url 'driver_profile' %}" class="btn btn-secondary">Edit Profile</a>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="dashboard-right">
+      <div class="card">
+        <h3>Available Rides</h3>
+        <ul class="list">
+          {% for r in available_rides %}
+            <li>
+              <div>
+                <strong>{{ r.pickup_location }}</strong> → {{ r.dropoff_location }}
+                <small>· {{ r.created_at|date:"Y-m-d H:i" }}</small>
+              </div>
+              <form method="post" action="{% url 'create_booking' r.id %}">
+                {% csrf_token %}
+                <button class="btn btn-primary bg-emerald-600 hover:bg-emerald-700 text-white border-0">✅ Accept</button>
+              </form>
+            </li>
+          {% empty %}
+            <li>No available rides.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>My Bookings</h3>
+        <ul class="list">
+          {% for b in bookings %}
+            <li>
+              <div>
+                <strong>{{ b.ride_request.pickup_location }}</strong> → {{ b.ride_request.dropoff_location }}
+                <small>· {{ b.confirmed_at|date:"Y-m-d H:i" }} · {{ b.status|title }}</small>
+              </div>
+              {% if b.status != 'completed' and b.status != 'cancelled' %}
+                <div style="margin:.25rem 0;">
+                  <a class="btn btn-secondary" href="{% url 'chat_room' b.id %}">💬 Chat</a>
+                </div>
+              {% endif %}
+              {% if b.status == 'ongoing' %}
+                <form method="post" action="{% url 'update_booking_status' b.id %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="status" value="completed" />
+                  <button class="btn btn-secondary bg-blue-600 hover:bg-blue-700 text-white border-0">🏁 Mark Completed</button>
+                </form>
+                <form method="post" action="{% url 'cancel_ride_request' b.ride_request.id %}" style="margin-top:.25rem;">
+                  {% csrf_token %}
+                  <button class="btn btn-secondary bg-red-600 hover:bg-red-700 text-white border-0">🛑 Cancel Ride</button>
+                </form>
+              {% endif %}
+            </li>
+          {% empty %}
+            <li>No bookings yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      
+      <div class="card">
+        <h3>Your Reviews & Ratings</h3>
+        <p style="margin:0 0 .75rem 0;">
+          Average rating: <strong id="avgRating">–</strong>
+        </p>
+        <ul class="list">
+          {% for rv in reviews %}
+            <li>
+              ⭐ {{ rv.rating }} — {{ rv.feedback|default:"No feedback" }}
+              <small>· {{ rv.created_at|date:"Y-m-d" }}</small>
+            </li>
+          {% empty %}
+            <li>No reviews yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      
+     
+
+      <p id="driverMsg" class="msg"></p>
+    </div>
+  </div>
+</section>
+
+
+{% endblock %}
