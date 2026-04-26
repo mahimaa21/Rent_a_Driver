@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#b91c1c" />
+  <title>{% block title %}Rent a Driver{% endblock %}</title>
+
+ 
+  <script src="https://cdn.tailwindcss.com"></script>
+ 
+ 
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-white text-gray-900 min-h-screen flex flex-col">
+  {% if debug %}
+  <div style="background: linear-gradient(90deg,#fef08a,#f59e0b);color:#1f2937;padding:.35rem .75rem;text-align:center;font-weight:600;">
+    DEVELOPMENT MODE — This banner is visible because DEBUG=True
+  </div>
+  {% endif %}
+ 
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <h2 class="logo">
+        <a href="/">
+          <span class="brand-main">Rent</span><span class="brand-accent">ADriver</span>
+        </a>
+      </h2>
+      <div class="nav-links">
+       
+        {% if user.is_authenticated and user.role == 'customer' %}
+        <a id="navDashboard" href="{% url 'customer_dashboard' %}" class="nav-visible">
+          <svg class="nav-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Dashboard
+        </a>
+        {% endif %}
+        {% if user.is_authenticated and user.role == 'driver' %}
+        <a id="navDriver" href="{% url 'driver_dashboard' %}" class="nav-visible">
+          <svg class="nav-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18.4 10c-.3-.8-1-1.4-1.9-1.4H7.5c-.9 0-1.6.6-1.9 1.4L3.5 11.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"/>
+            <circle cx="7" cy="17" r="2"/>
+            <circle cx="17" cy="17" r="2"/>
+          </svg>
+          Driver
+        </a>
+        {% endif %}
+        {% if user.is_authenticated %}
+        <a id="navEmergency" href="{% url 'emergency' %}" class="nav-visible">
+          <svg class="nav-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          Emergency
+        </a>
+        <a id="navUtilities" href="{% url 'health_dashboard' %}" class="nav-visible">
+          <svg class="nav-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 7v5l3 3"/>
+          </svg>
+          Utilities
+        </a>
+        {% endif %}
+        <a id="navLeaderboard" href="{% url 'leaderboard' %}" class="nav-visible">
+          <svg class="nav-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+            <path d="M4 22h16"/>
+            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+          </svg>
+          Leaderboard
+        </a>
+        {% if not user.is_authenticated %}
+          <a id="navLogin" href="{% url 'login' %}" class="nav-visible">Login</a>
+          <a id="navRegister" class="btn nav-visible" href="{% url 'register' %}">Get Started</a>
+        {% else %}
+          <a id="navLogout" href="{% url 'logout' %}" class="nav-visible">Logout</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+ 
+  <main class="page container flex-grow">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-gray-50 border-t mt-12">
+    <div class="container py-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
+      <div>
+        <h4 class="font-semibold mb-3">About</h4>
+        <p class="text-sm text-gray-600">RentADriver connects customers with trusted drivers nearby. No hassle—just simple rides with clear pricing.</p>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-3">Contact</h4>
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li>Email: <a class="text-blue-700 hover:underline" href="mailto:support@rentadriver.local">support@rentadriver.local</a></li>
+          <li>Phone: <a class="text-blue-700 hover:underline" href="tel:+10000000000">+1 000 000 0000</a></li>
+          <li>Hours: 24/7 support</li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-3">Quick Links</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a class="hover:underline" href="/">Home</a></li>
+          <li><a class="hover:underline" href="{% url 'leaderboard' %}">Leaderboard</a></li>
+          {% if user.is_authenticated %}
+            {% if user.role == 'customer' %}
+              <li><a class="hover:underline" href="{% url 'customer_dashboard' %}">Customer Dashboard</a></li>
+            {% elif user.role == 'driver' %}
+              <li><a class="hover:underline" href="{% url 'driver_dashboard' %}">Driver Dashboard</a></li>
+            {% endif %}
+            <li><a class="hover:underline" href="{% url 'emergency' %}">Emergency</a></li>
+            <li><a class="hover:underline" href="{% url 'health_dashboard' %}">Utilities</a></li>
+          {% else %}
+            <li><a class="hover:underline" href="{% url 'login' %}">Login</a></li>
+            <li><a class="hover:underline" href="{% url 'register' %}">Register</a></li>
+          {% endif %}
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-3">For Drivers</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a class="hover:underline" href="{% url 'driver_profile' %}">Update Profile</a></li>
+          <li><a class="hover:underline" href="{% url 'list_available_rides' %}">Available Rides</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-3">Legal</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a class="hover:underline" href="#">Terms of Service</a></li>
+          <li><a class="hover:underline" href="#">Privacy Policy</a></li>
+          <li><a class="hover:underline" href="#">Safety</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t">
+      <div class="container py-4 text-center text-sm text-gray-600">
+        © 2025 RentADriver — Built with Django. In development: {{ debug|yesno:"YES,NO" }}
+      </div>
+    </div>
+  </footer>
+
+ 
+
+  <script>
+   
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname;
+      document.querySelectorAll('.nav-links a').forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+
+ 
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>
