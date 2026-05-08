@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}System Health - Rent a Driver{% endblock %}
+
+{% block content %}
+<section class="container text-center py-10">
+  <h2 class="text-2xl font-bold mb-4">🩺 System Health Dashboard</h2>
+  <p class="text-gray-600 mb-6">Server-rendered health and configuration</p>
+
+  <div class="p-6 bg-white rounded-2xl shadow-lg inline-block text-left">
+    <p><strong>Status:</strong> <span>{{ status }}</span></p>
+    <p><strong>Database:</strong> <span>{{ database }}</span></p>
+  </div>
+
+  <div class="p-6 bg-white rounded-2xl shadow-lg mt-6 inline-block text-left">
+    <p><strong>App Name:</strong> <span>{{ app_name }}</span></p>
+    <p><strong>Version:</strong> <span>{{ version }}</span></p>
+    <p><strong>Debug Mode:</strong> <span>{{ debug|yesno:"ON,OFF" }}</span></p>
+    <p><strong>Timezone:</strong> <span>{{ timezone_name }}</span></p>
+    <p><strong>Installed Apps:</strong></p>
+    <ul class="list-disc ml-6 text-gray-700">
+      {% for app in installed_apps %}
+        <li>{{ app }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {% if user.is_authenticated %}
+  <div class="p-6 bg-white rounded-2xl shadow-lg mt-6 inline-block text-left w-full max-w-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xl font-semibold">Notes</h3>
+      <div class="space-x-2">
+        <a href="{% url 'utilities_notes_list' %}" class="btn-secondary">View All</a>
+        <a href="{% url 'utilities_notes_create' %}" class="btn">Create Note</a>
+      </div>
+    </div>
+
+    {% if recent_notes %}
+      <ul class="divide-y">
+        {% for note in recent_notes %}
+          <li class="py-3 flex items-center justify-between">
+            <div>
+              <p class="font-medium">{{ note.title }}</p>
+              <p class="text-xs text-gray-500">Updated {{ note.updated_at }}</p>
+            </div>
+            <div class="space-x-2">
+              <a href="{% url 'utilities_notes_edit' note.id %}" class="text-blue-600 hover:underline">Edit</a>
+              <form action="{% url 'utilities_notes_delete' note.id %}" method="post" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="text-red-600 hover:underline" onclick="return confirm('Delete this note?');">Delete</button>
+              </form>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-gray-600">No notes yet. Create your first one.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</section>
+
+{% block extra_scripts %}{% endblock %}
+{% endblock %}
