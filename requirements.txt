@@ -1,0 +1,17 @@
+# Core Django Framework
+Django==6.0.4
+
+# Database
+sqlparse==0.5.5
+
+# Image Processing (for profile pictures and review images)
+Pillow==12.2.0
+
+# HTTP Requests (for geocoding API calls)
+requests==2.33.1
+
+# ASGI Support
+asgiref==3.11.1
+
+# Timezone Support
+tzdata==2025.3

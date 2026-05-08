@@ -21,7 +21,6 @@ from .models import (
     DriverReview,
     ChatMessage,
 )
-from .models import Account
 
 
 def calculate_distance(lat1, lon1, lat2, lon2):
@@ -185,7 +184,7 @@ def customer_dashboard(request):
     if request.method == "POST":
         pickup = request.POST.get("pickup")
         dropoff = request.POST.get("dropoff")
-        car = request.POST.get("carName")
+        # Note: carName from form is not currently stored in the model
         RideRequest.objects.create(
             customer=request.user,
             pickup_location=pickup,
@@ -321,7 +320,7 @@ def edit_ride_request(request, ride_request_id):
         ride.save(update_fields=["pickup_location", "dropoff_location"])
         messages.success(request, "Ride updated.")
         return redirect("customer_dashboard")
-    return render(request, "ride_edit.html", {"ride": ride})
+    return render(request, "ride_request.html", {"ride": ride})
 
 
 # ===============================================================
@@ -501,7 +500,7 @@ def driver_leaderboard(request):
     ]
     total_drivers = Account.objects.filter(role="driver").count()
     total_rides = Booking.objects.filter(status="completed").count()
-    avg_rating_overall = DriverReview.objects.aggregate(avg=Avg("rating"))[["avg"]] if False else DriverReview.objects.aggregate(avg=Avg("rating"))["avg"]
+    avg_rating_overall = DriverReview.objects.aggregate(avg=Avg("rating"))["avg"]
     context = {
         "leaderboard": leaderboard,
         "total_drivers": total_drivers,
@@ -531,7 +530,7 @@ def driver_leaderboard_view(request):
     ]
     total_drivers = Account.objects.filter(role="driver").count()
     total_rides = Booking.objects.filter(status="completed").count()
-    avg_rating_overall = DriverReview.objects.aggregate(avg=Avg("rating"))[["avg"]] if False else DriverReview.objects.aggregate(avg=Avg("rating"))["avg"]
+    avg_rating_overall = DriverReview.objects.aggregate(avg=Avg("rating"))["avg"]
     context = {
         "leaderboard": leaderboard,
         "total_drivers": total_drivers,
@@ -647,11 +646,16 @@ def delete_emergency_contact(request):
 # ================ LOCATION UPDATES =============================
 # ===============================================================
 
+@login_required
 def update_location(request):
     """Save the user's latest latitude and longitude."""
-    lat = request.POST.get("lat") or request.GET.get("lat")
-    lng = request.POST.get("lng") or request.GET.get("lng")
-    next_url = request.POST.get("next") or request.GET.get("next") or request.META.get("HTTP_REFERER")
+    if request.method != "POST":
+        messages.error(request, "Invalid request method.")
+        return redirect("home")
+    
+    lat = request.POST.get("lat")
+    lng = request.POST.get("lng")
+    next_url = request.POST.get("next") or request.META.get("HTTP_REFERER")
 
     if not lat or not lng:
         messages.error(request, "Missing coordinates.")
@@ -660,24 +664,25 @@ def update_location(request):
     try:
         lat = float(lat)
         lng = float(lng)
-        if request.user.is_authenticated:
-            # ✅ Always update Account fields
-            request.user.last_lat = lat
-            request.user.last_lng = lng
-            request.user.save(update_fields=["last_lat", "last_lng"])
+        
+        # Validate coordinate ranges
+        if not (-90 <= lat <= 90) or not (-180 <= lng <= 180):
+            messages.error(request, "Invalid coordinates.")
+            return redirect(next_url or "home")
+        
+        # ✅ Always update Account fields
+        request.user.last_lat = lat
+        request.user.last_lng = lng
+        request.user.save(update_fields=["last_lat", "last_lng"])
 
-            # ✅ If driver, also update DriverProfile
-            if request.user.role == "driver":
-                driver_profile, _ = DriverProfile.objects.get_or_create(user=request.user)
-                driver_profile.current_lat = lat
-                driver_profile.current_lng = lng
-                driver_profile.save(update_fields=["current_lat", "current_lng"])
+        # ✅ If driver, also update DriverProfile
+        if request.user.role == "driver":
+            driver_profile, _ = DriverProfile.objects.get_or_create(user=request.user)
+            driver_profile.current_lat = lat
+            driver_profile.current_lng = lng
+            driver_profile.save(update_fields=["current_lat", "current_lng"])
 
-            msg = "Authenticated user location updated"
-        else:
-            msg = "Anonymous location received (not saved)"
-
-        messages.info(request, msg)
+        messages.success(request, "Location updated successfully.")
         return redirect(next_url or "home")
     except Exception as e:
         messages.error(request, str(e))
