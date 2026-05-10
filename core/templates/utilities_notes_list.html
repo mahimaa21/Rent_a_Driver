@@ -1,31 +1,51 @@
 {% extends "base.html" %}
 {% block title %}Notes - Utilities{% endblock %}
+
 {% block content %}
-<section class="dashboard container">
-  <h2>Utilities Notes</h2>
-  <p><a class="btn btn-primary" href="{% url 'utilities_notes_create' %}">+ New Note</a></p>
-  <ul class="list">
+<section style="max-width: 680px; margin: 2rem auto; padding: 0 1rem; font-family: sans-serif;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+    <h2 style="font-size: 18px; font-weight: 500; margin: 0;">📝 Notes</h2>
+    <a href="{% url 'utilities_notes_create' %}"
+      style="display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 16px; background: #b91c1c; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 500; text-decoration: none;">
+      + New Note
+    </a>
+  </div>
+
+  <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
     {% for n in notes %}
-      <li>
-        <div>
-          <strong>{{ n.title }}</strong>
-          <small>· updated {{ n.updated_at|date:"Y-m-d H:i" }}</small>
-          <p style="margin:.25rem 0 0;">{{ n.body|default:"(no content)" }}</p>
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 1rem 1.25rem; border-bottom: 1px solid #f3f4f6;">
+        <div style="flex: 1; min-width: 0;">
+          <p style="font-size: 14px; font-weight: 500; color: #111; margin: 0 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ n.title }}</p>
+          <p style="font-size: 11px; color: #9ca3af; margin: 0 0 6px;">Updated {{ n.updated_at|date:"Y-m-d H:i" }}</p>
+          <p style="font-size: 13px; color: #6b7280; margin: 0; line-height: 1.5;">{{ n.body|default:"(no content)" }}</p>
         </div>
-        <div style="margin-top:.25rem; display:flex; gap:.5rem;">
-          <a class="btn btn-secondary" href="{% url 'utilities_notes_edit' n.id %}">Edit</a>
-          <form method="post" action="{% url 'utilities_notes_delete' n.id %}">
+        <div style="display: flex; gap: 8px; flex-shrink: 0; padding-top: 2px;">
+          <a href="{% url 'utilities_notes_edit' n.id %}"
+            style="font-size: 12px; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 6px; padding: 4px 12px; text-decoration: none;">
+            Edit
+          </a>
+          <form method="post" action="{% url 'utilities_notes_delete' n.id %}" style="margin: 0;">
             {% csrf_token %}
-            <button class="btn btn-secondary" type="submit">Delete</button>
+            <button type="submit"
+              style="font-size: 12px; color: #b91c1c; background: none; border: 1px solid #fecaca; border-radius: 6px; padding: 4px 12px; cursor: pointer;">
+              Delete
+            </button>
           </form>
         </div>
-      </li>
+      </div>
     {% empty %}
-      <li>No notes yet.</li>
+      <div style="text-align: center; padding: 2.5rem 1rem; color: #9ca3af; font-size: 14px;">
+        No notes yet. Create your first one!
+      </div>
     {% endfor %}
-  </ul>
+  </div>
+
   {% if messages %}
-    <ul class="msg">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
+    <ul style="margin-top: 1rem; padding: .75rem 1rem; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca; list-style: none; font-size: 13px; color: #b91c1c;">
+      {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+    </ul>
   {% endif %}
+
 </section>
 {% endblock %}

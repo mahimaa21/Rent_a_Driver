@@ -1,23 +1,48 @@
 {% extends "base.html" %}
 {% block title %}{% if note %}Edit Note{% else %}New Note{% endif %} - Utilities{% endblock %}
+
 {% block content %}
-<section class="form-section">
-  <div class="form-container">
-    <h2>{% if note %}Edit Note{% else %}New Note{% endif %}</h2>
+<section style="max-width: 520px; margin: 2rem auto; padding: 0 1rem; font-family: sans-serif;">
+  <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.75rem 2rem;">
+
+    <h2 style="font-size: 18px; font-weight: 500; margin: 0 0 1.5rem;">
+      📝 {% if note %}Edit Note{% else %}New Note{% endif %}
+    </h2>
+
     <form method="post" action="">
       {% csrf_token %}
-      <label>Title</label>
-      <input type="text" name="title" value="{% if note %}{{ note.title }}{% endif %}" required />
-      <label>Body</label>
-      <textarea name="body" rows="6">{% if note %}{{ note.body }}{% endif %}</textarea>
-      <div style="margin-top:.75rem; display:flex; gap:.5rem;">
-        <button class="btn btn-primary" type="submit">Save</button>
-        <a class="btn btn-secondary" href="{% url 'utilities_notes_list' %}">Cancel</a>
+
+      <div style="margin-bottom: 1.25rem;">
+        <label style="display: block; font-size: 12px; font-weight: 500; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px;">Title</label>
+        <input type="text" name="title" value="{% if note %}{{ note.title }}{% endif %}"
+          placeholder="Enter note title..." required
+          style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: #f9fafb; box-sizing: border-box; outline: none;" />
+      </div>
+
+      <div style="margin-bottom: 1.25rem;">
+        <label style="display: block; font-size: 12px; font-weight: 500; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px;">Body</label>
+        <textarea name="body" rows="6" placeholder="Write your note here..."
+          style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: #f9fafb; box-sizing: border-box; resize: vertical; outline: none; line-height: 1.6;">{% if note %}{{ note.body }}{% endif %}</textarea>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+        <button type="submit"
+          style="height: 40px; padding: 0 22px; background: #b91c1c; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;">
+          Save Note
+        </button>
+        <a href="{% url 'utilities_notes_list' %}"
+          style="height: 40px; padding: 0 18px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; color: #6b7280; text-decoration: none; display: flex; align-items: center;">
+          Cancel
+        </a>
       </div>
     </form>
+
     {% if messages %}
-      <ul class="msg">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
+      <ul style="margin-top: 1rem; padding: .75rem 1rem; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca; list-style: none; font-size: 13px; color: #b91c1c;">
+        {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+      </ul>
     {% endif %}
+
   </div>
 </section>
 {% endblock %}

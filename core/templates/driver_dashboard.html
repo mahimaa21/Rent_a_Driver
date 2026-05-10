@@ -72,18 +72,18 @@
               </div>
               {% if b.status != 'completed' and b.status != 'cancelled' %}
                 <div style="margin:.25rem 0;">
-                  <a class="btn btn-secondary" href="{% url 'chat_room' b.id %}">💬 Chat</a>
+                  <a class="btn btn-secondary" href="{% url 'chat_room' b.id %}">Chat</a>
                 </div>
               {% endif %}
               {% if b.status == 'ongoing' %}
                 <form method="post" action="{% url 'update_booking_status' b.id %}">
                   {% csrf_token %}
                   <input type="hidden" name="status" value="completed" />
-                  <button class="btn btn-secondary bg-blue-600 hover:bg-blue-700 text-white border-0">🏁 Mark Completed</button>
+                  <button class="btn btn-secondary bg-blue-600 hover:bg-blue-700 text-white border-0">Mark Completed</button>
                 </form>
                 <form method="post" action="{% url 'cancel_ride_request' b.ride_request.id %}" style="margin-top:.25rem;">
                   {% csrf_token %}
-                  <button class="btn btn-secondary bg-red-600 hover:bg-red-700 text-white border-0">🛑 Cancel Ride</button>
+                  <button class="btn btn-secondary bg-red-600 hover:bg-red-700 text-white border-0">Cancel Ride</button>
                 </form>
               {% endif %}
             </li>
