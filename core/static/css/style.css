@@ -667,6 +667,7 @@ footer p {
 }
 
 
+
 @media (max-width: 768px) {
   .emergency-grid {
     grid-template-columns: 1fr;
@@ -1701,10 +1702,6 @@ a:focus-visible, button:focus-visible {
 
 .rides-card {
   border-left: 4px solid var(--accent);
-}
-
-.create-card {
-  
 }
 
 .enhanced-rides {
