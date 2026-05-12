@@ -5,21 +5,22 @@
 {% block content %}
 <section class="dashboard-page">
   <div class="dashboard-container">
-    
+
+    <!-- ── LEFT PANEL ── -->
     <div class="dashboard-left">
-  <h2>Welcome, {{ request.user.username }} 👨‍✈️</h2>
+      <h2>Welcome, {{ request.user.username }} 👨‍✈️</h2>
       <div class="info-card">
         <p><strong>Total Rides Completed:</strong> <span id="totalRides">{{ total_completed|default:0 }}</span></p>
         <p><strong>Ongoing Rides:</strong> <span id="ongoingRides">{{ total_ongoing|default:0 }}</span></p>
       </div>
 
-      
       <div class="card" style="margin-top:1rem;">
         <h3>Your Profile</h3>
         {% if request.user.driverprofile %}
-          <div class="flex" style="gap:1rem; align-items:center;">
+          <div class="flex" style="gap:1rem;align-items:center;">
             {% if request.user.driverprofile.profile_picture %}
-              <img src="{{ request.user.driverprofile.profile_picture.url }}" alt="Profile" style="width:64px;height:64px;border-radius:8px;object-fit:cover;" />
+              <img src="{{ request.user.driverprofile.profile_picture.url }}" alt="Profile"
+                   style="width:64px;height:64px;border-radius:8px;object-fit:cover;" />
             {% endif %}
             <div>
               <p><strong>{{ request.user.driverprofile.full_name|default:request.user.username }}</strong></p>
@@ -33,14 +34,79 @@
         {% else %}
           <p>No profile yet.</p>
         {% endif %}
-        <div style="margin-top:.5rem;">
+        <div style="margin-top:.75rem;display:flex;gap:.5rem;flex-wrap:wrap;">
           <a href="{% url 'driver_profile' %}" class="btn btn-secondary">Edit Profile</a>
+          <a href="{% url 'payments:driver_history' %}" class="btn btn-secondary">💰 Payment History</a>
         </div>
       </div>
     </div>
 
-    
+    <!-- ── RIGHT PANEL ── -->
     <div class="dashboard-right">
+
+      <!-- ══ CURRENTLY RUNNING RIDES ══ -->
+      <div class="card" style="border:2px solid rgba(34,197,94,.35);background:rgba(34,197,94,.04);">
+        <h3 style="display:flex;align-items:center;gap:.5rem;">
+          🚗 Currently Running Rides
+          {% if total_ongoing %}
+            <span style="background:#22c55e;color:#fff;font-size:.7rem;font-weight:700;padding:.15rem .55rem;border-radius:999px;">{{ total_ongoing }}</span>
+          {% endif %}
+        </h3>
+
+        <ul class="list">
+          {% for b in ongoing_bookings %}
+            <li style="display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;flex-wrap:wrap;padding:.75rem 0;border-bottom:1px solid var(--color-border,#333);">
+
+              <!-- Ride info -->
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;">
+                  {{ b.ride_request.pickup_location }} → {{ b.ride_request.dropoff_location }}
+                </div>
+                <div style="font-size:.8rem;color:var(--color-text-muted,#888);margin-top:.2rem;">
+                  Customer: {{ b.ride_request.customer.username }}
+                  &nbsp;·&nbsp; {{ b.confirmed_at|date:"Y-m-d H:i" }}
+                </div>
+              </div>
+
+              <!-- Right side: payment badge + actions -->
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.4rem;flex-shrink:0;">
+
+                <!-- Payment status badge -->
+                {% if b.payment %}
+                  <span style="display:inline-flex;align-items:center;gap:.3rem;background:rgba(34,197,94,.15);color:#22c55e;font-size:.75rem;font-weight:700;padding:.25rem .7rem;border-radius:999px;white-space:nowrap;">
+                    ✅ Paid &nbsp;·&nbsp; {{ b.payment.get_method_display }}
+                  </span>
+                {% else %}
+                  <span style="display:inline-flex;align-items:center;gap:.3rem;background:rgba(251,191,36,.12);color:#f59e0b;font-size:.75rem;font-weight:700;padding:.25rem .7rem;border-radius:999px;white-space:nowrap;">
+                    ⏳ Unpaid
+                  </span>
+                {% endif %}
+
+                <!-- Action buttons -->
+                <div style="display:flex;gap:.4rem;flex-wrap:wrap;justify-content:flex-end;">
+                  <a class="btn btn-secondary" href="{% url 'chat_room' b.id %}" style="font-size:.8rem;padding:.3rem .7rem;">💬 Chat</a>
+
+                  <form method="post" action="{% url 'update_booking_status' b.id %}" style="margin:0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="completed" />
+                    <button class="btn btn-secondary" style="font-size:.8rem;padding:.3rem .7rem;background:#3b82f6;border-color:#3b82f6;color:#fff;">🏁 Complete</button>
+                  </form>
+
+                  <form method="post" action="{% url 'cancel_ride_request' b.ride_request.id %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button class="btn btn-secondary" style="font-size:.8rem;padding:.3rem .7rem;background:#ef4444;border-color:#ef4444;color:#fff;">🛑 Cancel</button>
+                  </form>
+                </div>
+              </div>
+
+            </li>
+          {% empty %}
+            <li style="color:var(--color-text-muted,#888);padding:.5rem 0;">No rides currently in progress.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- ══ AVAILABLE RIDES ══ -->
       <div class="card">
         <h3>Available Rides</h3>
         <ul class="list">
@@ -61,31 +127,29 @@
         </ul>
       </div>
 
+      <!-- ══ ALL BOOKINGS ══ -->
       <div class="card">
         <h3>My Bookings</h3>
         <ul class="list">
           {% for b in bookings %}
-            <li>
-              <div>
+            <li style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;">
+              <div style="flex:1;min-width:0;">
                 <strong>{{ b.ride_request.pickup_location }}</strong> → {{ b.ride_request.dropoff_location }}
                 <small>· {{ b.confirmed_at|date:"Y-m-d H:i" }} · {{ b.status|title }}</small>
               </div>
-              {% if b.status != 'completed' and b.status != 'cancelled' %}
-                <div style="margin:.25rem 0;">
-                  <a class="btn btn-secondary" href="{% url 'chat_room' b.id %}">Chat</a>
-                </div>
-              {% endif %}
-              {% if b.status == 'ongoing' %}
-                <form method="post" action="{% url 'update_booking_status' b.id %}">
-                  {% csrf_token %}
-                  <input type="hidden" name="status" value="completed" />
-                  <button class="btn btn-secondary bg-blue-600 hover:bg-blue-700 text-white border-0">Mark Completed</button>
-                </form>
-                <form method="post" action="{% url 'cancel_ride_request' b.ride_request.id %}" style="margin-top:.25rem;">
-                  {% csrf_token %}
-                  <button class="btn btn-secondary bg-red-600 hover:bg-red-700 text-white border-0">Cancel Ride</button>
-                </form>
-              {% endif %}
+
+              <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0;flex-wrap:wrap;">
+                <!-- Payment badge inline -->
+                {% if b.payment %}
+                  <span style="background:rgba(34,197,94,.15);color:#22c55e;font-size:.7rem;font-weight:700;padding:.2rem .55rem;border-radius:999px;white-space:nowrap;">✅ Paid</span>
+                {% elif b.status == 'ongoing' %}
+                  <span style="background:rgba(251,191,36,.12);color:#f59e0b;font-size:.7rem;font-weight:700;padding:.2rem .55rem;border-radius:999px;white-space:nowrap;">⏳ Unpaid</span>
+                {% endif %}
+
+                {% if b.status != 'completed' and b.status != 'cancelled' %}
+                  <a class="btn btn-secondary" href="{% url 'chat_room' b.id %}" style="font-size:.8rem;padding:.3rem .7rem;">💬 Chat</a>
+                {% endif %}
+              </div>
             </li>
           {% empty %}
             <li>No bookings yet.</li>
@@ -93,12 +157,10 @@
         </ul>
       </div>
 
-      
+      <!-- ══ REVIEWS ══ -->
       <div class="card">
         <h3>Your Reviews & Ratings</h3>
-        <p style="margin:0 0 .75rem 0;">
-          Average rating: <strong id="avgRating">–</strong>
-        </p>
+        <p style="margin:0 0 .75rem 0;">Average rating: <strong id="avgRating">{{ avg_rating|default:"–" }}</strong></p>
         <ul class="list">
           {% for rv in reviews %}
             <li>
@@ -111,13 +173,8 @@
         </ul>
       </div>
 
-      
-     
-
       <p id="driverMsg" class="msg"></p>
     </div>
   </div>
 </section>
-
-
 {% endblock %}

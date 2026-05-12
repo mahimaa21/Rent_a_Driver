@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
@@ -44,8 +44,10 @@ urlpatterns = [
 
   # ---------- USER LOCATION ----------
   path("user/update-location/", views.update_location, name="update_location"),
+
 ]
 urlpatterns += [
   path("", views.home_view, name="home"),
   path("driver/dashboard/", views.driver_dashboard, name="driver_dashboard"),
+  path('payments/', include('payments.urls')),
 ]

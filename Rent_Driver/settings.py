@@ -1,16 +1,15 @@
 from pathlib import Path
 from datetime import timedelta
-import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-g^%t33=v(zbnm3rrjre0$rsl7)p6q1b#l-)e*=&gfc=d1@s**!")
+SECRET_KEY = "django-insecure-g^%t33=v(zbnm3rrjre0$rsl7)p6q1b#l-)e*=&gfc=d1@s**!"
 
-# ⚠️ Turn DEBUG=False in production
-DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
+#  Turn DEBUG=False in production
+DEBUG = True  
 
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")  # 👉 allow all hosts for now (update in production)
+ALLOWED_HOSTS = ["*"]  #  allow all hosts for now (update in production)
 
 
 # ---------- Apps ----------
@@ -28,6 +27,7 @@ INSTALLED_APPS = [
     "core",
      "emergency",
     "utilities",
+    "payments",
 ]
 
 MIDDLEWARE = [

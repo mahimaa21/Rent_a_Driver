@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Payment History{% endblock %}
+
+{% block content %}
+<section class="dashboard-page">
+  <div class="dashboard-container">
+    <div class="dashboard-left">
+      <h2>💰 Payment History</h2>
+      <p style="color:var(--color-text-muted,#888);margin-top:.5rem;">All rides you've completed and their payment status.</p>
+
+      <div style="margin-top:1.5rem;display:flex;flex-direction:column;gap:.75rem;">
+        {% with total=bookings|length paid_count=0 %}
+        <div class="info-card">
+          <p><strong>Total Rides:</strong> {{ bookings|length }}</p>
+          <p><strong>Paid Rides:</strong>
+            {% with paid=bookings|length %}
+              {% for b in bookings %}{% if b.payment %}{% endif %}{% endfor %}
+            {% endwith %}
+            {{ paid_bookings_count|default:"—" }}
+          </p>
+        </div>
+        {% endwith %}
+      </div>
+    </div>
+
+    <div class="dashboard-right">
+      <div class="card">
+        <h3>All Bookings</h3>
+
+        <!-- Filter tabs -->
+        <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+          <button onclick="filterPayments('all')" id="tab-all"
+                  class="btn btn-secondary" style="font-size:.8rem;padding:.35rem .9rem;">All</button>
+          <button onclick="filterPayments('paid')" id="tab-paid"
+                  class="btn btn-secondary" style="font-size:.8rem;padding:.35rem .9rem;">✅ Paid</button>
+          <button onclick="filterPayments('unpaid')" id="tab-unpaid"
+                  class="btn btn-secondary" style="font-size:.8rem;padding:.35rem .9rem;">⏳ Unpaid</button>
+        </div>
+
+        <ul class="list" id="paymentList">
+          {% for b in bookings %}
+            <li class="payment-item {% if b.payment %}is-paid{% else %}is-unpaid{% endif %}"
+                style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;">
+              <div style="flex:1;min-width:0;">
+                <strong>{{ b.ride_request.pickup_location }}</strong> → {{ b.ride_request.dropoff_location }}
+                <br>
+                <small style="color:var(--color-text-muted,#888);">
+                  Customer: {{ b.ride_request.customer.username }}
+                  &nbsp;·&nbsp;{{ b.confirmed_at|date:"Y-m-d H:i" }}
+                  &nbsp;·&nbsp;{{ b.status|title }}
+                </small>
+              </div>
+
+              {% if b.payment %}
+                <div style="text-align:right;flex-shrink:0;">
+                  <span style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(34,197,94,.15);color:#22c55e;font-size:.8rem;font-weight:700;padding:.3rem .75rem;border-radius:999px;">
+                    ✅ Paid
+                  </span>
+                  <br>
+                  <small style="color:var(--color-text-muted,#888);">
+                    via {{ b.payment.get_method_display }}
+                    &nbsp;·&nbsp;{{ b.payment.paid_at|date:"Y-m-d H:i" }}
+                  </small>
+                </div>
+              {% else %}
+                <span style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(251,191,36,.12);color:#f59e0b;font-size:.8rem;font-weight:700;padding:.3rem .75rem;border-radius:999px;flex-shrink:0;">
+                  ⏳ Unpaid
+                </span>
+              {% endif %}
+            </li>
+          {% empty %}
+            <li>No bookings yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function filterPayments(type) {
+    document.querySelectorAll('.payment-item').forEach(el => {
+      if (type === 'all') el.style.display = '';
+      else if (type === 'paid') el.style.display = el.classList.contains('is-paid') ? '' : 'none';
+      else el.style.display = el.classList.contains('is-unpaid') ? '' : 'none';
+    });
+    ['all','paid','unpaid'].forEach(t => {
+      document.getElementById('tab-'+t).style.opacity = t === type ? '1' : '.5';
+    });
+  }
+  filterPayments('all');
+</script>
+{% endblock %}
