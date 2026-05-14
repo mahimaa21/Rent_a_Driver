@@ -25,9 +25,12 @@ class DriverProfile(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100, null=True, blank=True)
     license_number = models.CharField(max_length=50)
+
+     # DriverProfile class e add koro:
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    
     vehicle_details = models.CharField(max_length=100, default="Unknown")  
     address = models.CharField(max_length=200, null=True, blank=True)
-
     nid_number = models.CharField(max_length=50, null=True, blank=True)
     profile_picture = models.ImageField(upload_to="profiles/", null=True, blank=True)
 

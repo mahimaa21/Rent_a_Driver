@@ -11,6 +11,8 @@ from urllib.parse import urlencode
 from urllib.request import urlopen, Request
 import json
 
+from urllib3 import request
+
 from .models import (
     Account,
     DriverProfile,
@@ -112,6 +114,8 @@ def driver_profile_view(request):
     if request.method == "POST":
         full_name = request.POST.get("full_name")
         license_number = request.POST.get("license")
+        # POST block e add koro (license_number er pashe):
+        phone_number = request.POST.get("phone_number")
         vehicle_details = request.POST.get("vehicle")
         nid_number = request.POST.get("nid_number")
         address = request.POST.get("address")
@@ -127,6 +131,8 @@ def driver_profile_view(request):
             profile.nid_number = nid_number
         if address is not None:
             profile.address = address
+        if phone_number:
+            profile.phone_number = phone_number
         if profile_picture:
             profile.profile_picture = profile_picture
        # Jodi latitude ar longitude deya thake tahole oigulo use hobe.Ar jodi na thake, tahole deya address theke location ber kora hobe.
@@ -196,6 +202,25 @@ def customer_dashboard(request):
     rides = RideRequest.objects.filter(customer=request.user).order_by("-created_at")
     customer_bookings = Booking.objects.filter(ride_request__customer=request.user).order_by("-confirmed_at")
 
+    # rides query er niche add koro:
+
+    accepted_ride_info = None
+    for ride in rides:
+        if ride.status == "accepted":
+            try:
+                booking = ride.booking
+                driver_profile = DriverProfile.objects.get(user=booking.driver)
+                accepted_ride_info = {
+                    "ride": ride,
+                    "driver_name": driver_profile.full_name or booking.driver.username,
+                    "driver_phone": driver_profile.phone_number,
+                    "driver_picture": driver_profile.profile_picture,
+                    "driver_lat": driver_profile.current_lat,
+                    "driver_lng": driver_profile.current_lng,
+                }
+            except:
+                pass
+
     # Build nearby drivers list based on customer's last known location
     nearby_list = []
     lat0 = request.user.last_lat
@@ -228,6 +253,7 @@ def customer_dashboard(request):
         "rides": rides,
         "nearby_drivers": nearby_list,
         "customer_bookings": customer_bookings,
+        "accepted_ride_info": accepted_ride_info,
     })
 
 

@@ -32,6 +32,65 @@
                     <a class="btn btn-secondary" href="{% url 'chat_room' r.booking.id %}">💬 Chat</a>
                   </div>
                 {% endif %}
+
+                <!-- ✅ NEW: Show driver info card when ride is accepted -->
+                {% if r.status == 'accepted' and accepted_ride_info and accepted_ride_info.ride.id == r.id %}
+                  <div class="driver-info-card" style="
+                    margin-top: .75rem;
+                    padding: .75rem 1rem;
+                    background: #f0f9ff;
+                    border: 1px solid #bae6fd;
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    flex-wrap: wrap;
+                  ">
+                    {% if accepted_ride_info.driver_picture %}
+                      <img
+                        src="{{ accepted_ride_info.driver_picture.url }}"
+                        alt="Driver photo"
+                        style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #38bdf8;"
+                      />
+                    {% else %}
+                      <div style="
+                        width:60px;height:60px;border-radius:50%;
+                        background:#cbd5e1;display:flex;align-items:center;
+                        justify-content:center;font-size:1.5rem;
+                      ">🧑</div>
+                    {% endif %}
+ 
+                    <div>
+                      <p style="margin:0;font-weight:600;font-size:1rem;">🚗 Your Driver is on the way!</p>
+                      <p style="margin:.15rem 0 0;"><strong>Name:</strong> {{ accepted_ride_info.driver_name }}</p>
+                     
+                      <p style="margin:.1rem 0 0;">
+                        <strong>Phone:</strong>
+                        {% if accepted_ride_info.driver_phone %}
+                          <a href="tel:{{ accepted_ride_info.driver_phone }}">{{ accepted_ride_info.driver_phone }}</a>
+                        {% else %}
+                          <span style="color:#94a3b8;">Not provided</span>
+                        {% endif %}
+                      </p>
+                      {% if accepted_ride_info.driver_lat and accepted_ride_info.driver_lng %}
+                        <p style="margin:.1rem 0 0;">
+                          <strong>Location:</strong>
+                          <a
+                            href="https://maps.google.com/?q={{ accepted_ride_info.driver_lat }},{{ accepted_ride_info.driver_lng }}"
+                            target="_blank"
+                            rel="noopener"
+                          >View on Map 📍</a>
+                        </p>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endif %}
+                <!-- END driver info card -->
+
+
+
+
+
                 {% if r.status == 'pending' %}
                   <a class="btn btn-secondary" href="{% url 'edit_ride_request' r.id %}">Edit</a>
                   <form method="post" action="{% url 'cancel_ride_request' r.id %}" style="display:inline-block;">
