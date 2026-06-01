@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}All Reviews - Rent a Driver{% endblock %}
+
+{% block content %}
+<section class="all-reviews-section">
+  <div class="container">
+   
+    <!-- Back Button -->
+    <div class="back-btn-wrapper">
+      <a href="{% url 'customer_dashboard' %}" class="btn btn-secondary back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to Dashboard
+      </a>
+    </div>
+
+    <!-- Main Card -->
+    <div class="card reviews-card enhanced-reviews">
+      <div class="card-header">
+        <h2>⭐ My Reviews</h2>
+        <p class="card-subtitle">Leave reviews for your completed rides</p>
+      </div>
+     
+      <div class="reviews-container">
+        <ul class="reviews-list">
+          {% for b in customer_bookings %}
+            <li class="review-item">
+              <div class="review-header">
+                <div class="review-header-top">
+                  <div class="ride-locations">
+                    <strong>{{ b.ride_request.pickup_location }}</strong>
+                    <span class="ride-arrow">→</span>
+                    <strong>{{ b.ride_request.dropoff_location }}</strong>
+                  </div>
+                  {% if b.review %}
+                    <span class="status-badge status-reviewed">
+                      ✓ Reviewed
+                    </span>
+                  {% else %}
+                    <span class="status-badge status-pending-review">
+                      Pending Review
+                    </span>
+                  {% endif %}
+                </div>
+                <small class="ride-timestamp">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  {{ b.confirmed_at|date:"F d, Y · H:i" }}
+                </small>
+              </div>
+
+              {% if not b.review %}
+                <!-- Review Form -->
+                <div class="review-form-wrapper">
+                  <form method="post" action="{% url 'create_review' b.id %}" class="review-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="review-form-fields">
+                      <div class="review-form-group">
+                        <label class="review-label">Rating:</label>
+                        <select name="rating" class="review-select">
+                          <option value="5">⭐⭐⭐⭐⭐ Excellent (5)</option>
+                          <option value="4">⭐⭐⭐⭐ Very Good (4)</option>
+                          <option value="3">⭐⭐⭐ Good (3)</option>
+                          <option value="2">⭐⭐ Fair (2)</option>
+                          <option value="1">⭐ Poor (1)</option>
+                        </select>
+                      </div>
+                      <div class="review-form-group">
+                        <label class="review-label">Feedback (optional):</label>
+                        <textarea name="feedback" placeholder="Share your experience with this driver..." class="review-textarea" rows="3"></textarea>
+                      </div>
+                      <div class="review-form-group">
+                        <label class="review-label">Upload Image (optional):</label>
+                        <input type="file" name="image" accept="image/*" class="review-file" />
+                      </div>
+                      <button type="submit" class="btn btn-primary submit-review-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                        Submit Review
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              {% else %}
+                <!-- Submitted Review Display -->
+                <div class="review-submitted">
+                  <div class="review-content">
+                    <div class="review-rating">
+                      <span class="rating-stars">
+                        {% for i in "12345" %}
+                          {% if forloop.counter <= b.review.rating %}
+                            ⭐
+                          {% else %}
+                            ☆
+                          {% endif %}
+                        {% endfor %}
+                      </span>
+                      <span class="rating-number">({{ b.review.rating }}/5)</span>
+                    </div>
+                    {% if b.review.feedback %}
+                      <p class="review-feedback">{{ b.review.feedback }}</p>
+                    {% else %}
+                      <p class="review-feedback no-feedback">No feedback provided</p>
+                    {% endif %}
+                    {% if b.review.image %}
+                      <div class="review-image-wrapper">
+                        <img src="{{ b.review.image.url }}" alt="Review image" class="review-image" />
+                      </div>
+                    {% endif %}
+                    <p class="review-date">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      Reviewed on {{ b.review.created_at|date:"F d, Y" }}
+                    </p>
+                  </div>
+                  <form method="post" action="{% url 'delete_review' b.review.id %}" class="delete-review-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-secondary delete-review-btn">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                      Delete Review
+                    </button>
+                  </form>
+                </div>
+              {% endif %}
+            </li>
+          {% empty %}
+            <li class="empty-reviews">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              <h4>No completed rides to review</h4>
+              <p>Complete a ride to leave your first review!</p>
+              <a href="{% url 'create_ride_request' %}" class="btn btn-primary">
+                Create Ride Request
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+.all-reviews-section {
+  padding: 2rem 0;
+  min-height: 100vh;
+}
+
+.back-btn-wrapper {
+  margin-bottom: 1.5rem;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reviews-card {
+  margin-bottom: 2rem;
+}
+
+.card-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.card-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.reviews-container {
+  padding: 1.5rem;
+}
+
+.reviews-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.review-item {
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  background: #fff;
+  transition: all 0.2s;
+}
+
+.review-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.review-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.ride-locations {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.ride-arrow {
+  color: #94a3b8;
+  margin: 0 0.5rem;
+}
+
+.status-badge {
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-reviewed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-pending-review {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.ride-timestamp {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.review-form-wrapper {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+}
+
+.review-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.review-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.review-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #334155;
+}
+
+.review-select,
+.review-textarea,
+.review-file {
+  padding: 0.625rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.review-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.submit-review-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: flex-start;
+}
+
+.review-submitted {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.5rem;
+}
+
+.review-content {
+  margin-bottom: 1rem;
+}
+
+.review-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.rating-stars {
+  font-size: 1.25rem;
+}
+
+.rating-number {
+  font-weight: 600;
+  color: #059669;
+}
+
+.review-feedback {
+  color: #334155;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.no-feedback {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.review-image-wrapper {
+  margin: 1rem 0;
+}
+
+.review-image {
+  max-width: 300px;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.review-date {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.delete-review-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.empty-reviews {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-reviews svg {
+  color: #cbd5e1;
+  margin-bottom: 1.5rem;
+}
+
+.empty-reviews h4 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.5rem;
+}
+
+.empty-reviews p {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}
+</style>
+
+{% endblock %}
