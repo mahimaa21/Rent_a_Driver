@@ -2,11 +2,13 @@
 {% block title %}Leaderboard - Rent a Driver{% endblock %}
 
 {% block content %}
-<section class="dashboard">
-  <div class="container">
-    <div class="leaderboard-header">
-      <h2 class="leaderboard-title">
-        <svg class="leaderboard-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<section class="leaderboard-page">
+  <div class="container leaderboard-container-main">
+   
+    <!-- Hero Header -->
+    <div class="leaderboard-hero">
+      <div class="hero-icon-wrapper">
+        <svg class="hero-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
           <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
           <path d="M4 22h16"/>
@@ -14,107 +16,211 @@
           <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
           <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
         </svg>
-        Driver Leaderboard
-      </h2>
-      <p class="leaderboard-subtitle">Top performing drivers with highest ratings and completed rides</p>
+      </div>
+      <h1 class="hero-title">Driver Leaderboard</h1>
+      <p class="hero-subtitle">Celebrating our top performing drivers with highest ratings and completed rides</p>
     </div>
 
-    <div class="leaderboard-stats">
-      <div class="stat-card">
-        <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card stat-card-drivers">
+        <div class="stat-icon-bg">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
             <circle cx="9" cy="7" r="4"/>
             <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
           </svg>
         </div>
-        <div class="stat-content">
-          <div class="stat-number" id="totalDrivers">{{ total_drivers|default:0 }}</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ total_drivers|default:0 }}</div>
           <div class="stat-label">Total Drivers</div>
         </div>
       </div>
      
-      <div class="stat-card">
-        <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="stat-card stat-card-rating">
+        <div class="stat-icon-bg">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
           </svg>
         </div>
-        <div class="stat-content">
-          <div class="stat-number" id="avgRating">{{ avg_rating|default:"0.0" }}</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ avg_rating|default:"0.0" }}</div>
           <div class="stat-label">Average Rating</div>
         </div>
       </div>
      
-      <div class="stat-card">
-        <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="stat-card stat-card-rides">
+        <div class="stat-icon-bg">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18.4 10c-.3-.8-1-1.4-1.9-1.4H7.5c-.9 0-1.6.6-1.9 1.4L3.5 11.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"/>
             <circle cx="7" cy="17" r="2"/>
             <circle cx="17" cy="17" r="2"/>
           </svg>
         </div>
-        <div class="stat-content">
-          <div class="stat-number" id="totalRides">{{ total_rides|default:0 }}</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ total_rides|default:0 }}</div>
           <div class="stat-label">Total Rides</div>
         </div>
       </div>
     </div>
 
-    <div class="card leaderboard-card">
-      <div class="card-header">
-        <h3>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-            <path d="M4 22h16"/>
-            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
-          </svg>
-          Top 10 Drivers
-        </h3>
-        <p class="card-subtitle">Ranked by performance, ratings, and completed rides</p>
-      </div>
-     
-      <div class="leaderboard-container">
-        <ul class="leaderboard-list">
-          {% for d in leaderboard %}
-            <li>
-              <span>🏅 <strong>{{ forloop.counter }}. {{ d.username }}</strong></span>
-              <span>{{ d.total_completed }} rides | ⭐ {{ d.avg_rating }}</span>
-            </li>
-          {% empty %}
-            <li>No drivers found.</li>
-          {% endfor %}
-        </ul>
-       
-        <div class="empty-leaderboard" id="emptyLeaderboard" style="display: none;">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-            <path d="M4 22h16"/>
-            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
-          </svg>
-          <h4>No Drivers Found</h4>
-          <p>The leaderboard will appear when drivers start completing rides</p>
+    {% if leaderboard %}
+      <!-- Top 3 Podium -->
+      {% if leaderboard|length >= 3 %}
+      <div class="podium-section">
+        <h2 class="section-title">🏆 Top 3 Champions</h2>
+        <div class="podium-container">
+          <!-- 2nd Place -->
+          <div class="podium-item podium-second">
+            <div class="podium-rank-badge rank-silver">2</div>
+            <div class="podium-avatar">
+              <span class="avatar-text">{{ leaderboard.1.username|slice:":1"|upper }}</span>
+            </div>
+            <h3 class="podium-name">{{ leaderboard.1.username }}</h3>
+            <div class="podium-stats">
+              <div class="podium-stat">
+                <span class="podium-stat-value">{{ leaderboard.1.total_completed }}</span>
+                <span class="podium-stat-label">Rides</span>
+              </div>
+              <div class="podium-stat">
+                <span class="podium-stat-value">⭐ {{ leaderboard.1.avg_rating }}</span>
+                <span class="podium-stat-label">Rating</span>
+              </div>
+            </div>
+            <div class="podium-base podium-base-silver">
+              <span class="podium-medal">🥈</span>
+            </div>
+          </div>
+
+          <!-- 1st Place -->
+          <div class="podium-item podium-first">
+            <div class="podium-crown">👑</div>
+            <div class="podium-rank-badge rank-gold">1</div>
+            <div class="podium-avatar podium-avatar-large">
+              <span class="avatar-text">{{ leaderboard.0.username|slice:":1"|upper }}</span>
+            </div>
+            <h3 class="podium-name">{{ leaderboard.0.username }}</h3>
+            <div class="podium-stats">
+              <div class="podium-stat">
+                <span class="podium-stat-value">{{ leaderboard.0.total_completed }}</span>
+                <span class="podium-stat-label">Rides</span>
+              </div>
+              <div class="podium-stat">
+                <span class="podium-stat-value">⭐ {{ leaderboard.0.avg_rating }}</span>
+                <span class="podium-stat-label">Rating</span>
+              </div>
+            </div>
+            <div class="podium-base podium-base-gold">
+              <span class="podium-medal">🥇</span>
+            </div>
+          </div>
+
+          <!-- 3rd Place -->
+          <div class="podium-item podium-third">
+            <div class="podium-rank-badge rank-bronze">3</div>
+            <div class="podium-avatar">
+              <span class="avatar-text">{{ leaderboard.2.username|slice:":1"|upper }}</span>
+            </div>
+            <h3 class="podium-name">{{ leaderboard.2.username }}</h3>
+            <div class="podium-stats">
+              <div class="podium-stat">
+                <span class="podium-stat-value">{{ leaderboard.2.total_completed }}</span>
+                <span class="podium-stat-label">Rides</span>
+              </div>
+              <div class="podium-stat">
+                <span class="podium-stat-value">⭐ {{ leaderboard.2.avg_rating }}</span>
+                <span class="podium-stat-label">Rating</span>
+              </div>
+            </div>
+            <div class="podium-base podium-base-bronze">
+              <span class="podium-medal">🥉</span>
+            </div>
+          </div>
         </div>
       </div>
-     
-      <div id="leaderboardMsg" class="msg"></div>
-    </div>
+      {% endif %}
+
+      <!-- Full Rankings -->
+      <div class="rankings-section">
+        <h2 class="section-title">📊 Complete Rankings</h2>
+        <div class="rankings-card">
+          <div class="rankings-list">
+            {% for d in leaderboard %}
+            <div class="ranking-item {% if forloop.counter <= 3 %}ranking-top-3{% endif %}">
+              <div class="ranking-position">
+                {% if forloop.counter == 1 %}
+                  <span class="position-badge badge-gold">🥇</span>
+                {% elif forloop.counter == 2 %}
+                  <span class="position-badge badge-silver">🥈</span>
+                {% elif forloop.counter == 3 %}
+                  <span class="position-badge badge-bronze">🥉</span>
+                {% else %}
+                  <span class="position-number">{{ forloop.counter }}</span>
+                {% endif %}
+              </div>
+              <div class="ranking-avatar-small">
+                <span>{{ d.username|slice:":1"|upper }}</span>
+              </div>
+              <div class="ranking-info">
+                <h4 class="ranking-name">{{ d.username }}</h4>
+                <p class="ranking-details">{{ d.total_completed }} completed rides</p>
+              </div>
+              <div class="ranking-rating">
+                <span class="rating-stars">⭐</span>
+                <span class="rating-value">{{ d.avg_rating }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <!-- Empty State -->
+      <div class="empty-leaderboard-state">
+        <svg class="empty-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+          <path d="M4 22h16"/>
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+        </svg>
+        <h3 class="empty-title">No Drivers Yet</h3>
+        <p class="empty-description">The leaderboard will appear when drivers start completing rides and earning ratings</p>
+      </div>
+    {% endif %}
+
   </div>
 </section>
 
 <script>
-
 document.addEventListener('DOMContentLoaded', function() {
   const leaderboardNav = document.getElementById('navLeaderboard');
   if (leaderboardNav) {
     leaderboardNav.classList.add('active');
   }
+ 
+  // Add animation on scroll
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+ 
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, observerOptions);
+ 
+  document.querySelectorAll('.ranking-item, .stat-card, .podium-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
 });
 </script>
 {% endblock %}
