@@ -3,178 +3,387 @@
 {% block title %}Driver Dashboard - Rent a Driver{% endblock %}
 
 {% block content %}
-<section class="dashboard-page">
-  <div class="dashboard-container">
-
-    <!-- ── LEFT PANEL ── -->
-    <div class="dashboard-left">
-      <h2>Welcome, {{ request.user.username }} 👨‍✈️</h2>
-      <div class="info-card">
-        <p><strong>Total Rides Completed:</strong> <span id="totalRides">{{ total_completed|default:0 }}</span></p>
-        <p><strong>Ongoing Rides:</strong> <span id="ongoingRides">{{ total_ongoing|default:0 }}</span></p>
-      </div>
-
-      <div class="card" style="margin-top:1rem;">
-        <h3>Your Profile</h3>
-        {% if request.user.driverprofile %}
-          <div class="flex" style="gap:1rem;align-items:center;">
-            {% if request.user.driverprofile.profile_picture %}
-              <img src="{{ request.user.driverprofile.profile_picture.url }}" alt="Profile"
-                   style="width:64px;height:64px;border-radius:8px;object-fit:cover;" />
-            {% endif %}
-            <div>
-              <p><strong>{{ request.user.driverprofile.full_name|default:request.user.username }}</strong></p>
-              {% if request.user.driverprofile.address %}
-                <p class="text-sm">{{ request.user.driverprofile.address }}</p>
-              {% endif %}
-              <p class="text-sm">License: {{ request.user.driverprofile.license_number }}</p>
-              <p class="text-sm">Vehicle: {{ request.user.driverprofile.vehicle_details }}</p>
+<section class="driver-dashboard-page">
+  <div class="driver-dashboard-container">
+   
+    <!-- Hero Header -->
+    <div class="driver-hero">
+      <div class="driver-hero-content">
+        <div class="driver-avatar-section">
+          {% if request.user.driverprofile.profile_picture %}
+            <img src="{{ request.user.driverprofile.profile_picture.url }}" alt="Profile" class="driver-avatar-large" />
+          {% else %}
+            <div class="driver-avatar-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+          {% endif %}
+        </div>
+        <div class="driver-hero-info">
+          <h1 class="driver-welcome">Welcome back, {{ request.user.driverprofile.full_name|default:request.user.username }}! 👋</h1>
+          <p class="driver-subtitle">Ready to hit the road today?</p>
+          <div class="driver-quick-stats">
+            <div class="quick-stat-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18.4 10c-.3-.8-1-1.4-1.9-1.4H7.5c-.9 0-1.6.6-1.9 1.4L3.5 11.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"/>
+                <circle cx="7" cy="17" r="2"/>
+                <circle cx="17" cy="17" r="2"/>
+              </svg>
+              <span>{{ request.user.driverprofile.vehicle_details }}</span>
+            </div>
+            <div class="quick-stat-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+              </svg>
+              <span>{{ request.user.driverprofile.license_number }}</span>
             </div>
           </div>
-        {% else %}
-          <p>No profile yet.</p>
-        {% endif %}
-        <div style="margin-top:.75rem;display:flex;gap:.5rem;flex-wrap:wrap;">
-          <a href="{% url 'driver_profile' %}" class="btn btn-secondary">Edit Profile</a>
-          <a href="{% url 'payments:driver_history' %}" class="btn btn-secondary">💰 Payment History</a>
+        </div>
+        <div class="driver-hero-actions">
+          <a href="{% url 'driver_profile' %}" class="btn btn-hero-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Edit Profile
+          </a>
+          <a href="{% url 'payments:driver_history' %}" class="btn btn-hero-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            View Earnings
+          </a>
         </div>
       </div>
     </div>
 
-    <!-- ── RIGHT PANEL ── -->
-    <div class="dashboard-right">
-
-      <!-- ══ CURRENTLY RUNNING RIDES ══ -->
-      <div class="card" style="border:2px solid rgba(34,197,94,.35);background:rgba(34,197,94,.04);">
-        <h3 style="display:flex;align-items:center;gap:.5rem;">
-          🚗 Currently Running Rides
-          {% if total_ongoing %}
-            <span style="background:#22c55e;color:#fff;font-size:.7rem;font-weight:700;padding:.15rem .55rem;border-radius:999px;">{{ total_ongoing }}</span>
-          {% endif %}
-        </h3>
-
-        <ul class="list">
-          {% for b in ongoing_bookings %}
-            <li style="display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;flex-wrap:wrap;padding:.75rem 0;border-bottom:1px solid var(--color-border,#333);">
-
-              <!-- Ride info -->
-              <div style="flex:1;min-width:0;">
-                <div style="font-weight:600;">
-                  {{ b.ride_request.pickup_location }} → {{ b.ride_request.dropoff_location }}
-                </div>
-                <div style="font-size:.8rem;color:var(--color-text-muted,#888);margin-top:.2rem;">
-                  Customer: {{ b.ride_request.customer.username }}
-                  &nbsp;·&nbsp; {{ b.confirmed_at|date:"Y-m-d H:i" }}
-                </div>
-              </div>
-
-              <!-- Right side: payment badge + actions -->
-              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.4rem;flex-shrink:0;">
-
-                <!-- Payment status badge -->
-                {% if b.payment %}
-                  <span style="display:inline-flex;align-items:center;gap:.3rem;background:rgba(34,197,94,.15);color:#22c55e;font-size:.75rem;font-weight:700;padding:.25rem .7rem;border-radius:999px;white-space:nowrap;">
-                    ✅ Paid &nbsp;·&nbsp; {{ b.payment.get_method_display }}
-                  </span>
-                {% else %}
-                  <span style="display:inline-flex;align-items:center;gap:.3rem;background:rgba(251,191,36,.12);color:#f59e0b;font-size:.75rem;font-weight:700;padding:.25rem .7rem;border-radius:999px;white-space:nowrap;">
-                    ⏳ Unpaid
-                  </span>
-                {% endif %}
-
-                <!-- Action buttons -->
-                <div style="display:flex;gap:.4rem;flex-wrap:wrap;justify-content:flex-end;">
-                  <a class="btn btn-secondary" href="{% url 'chat_room' b.id %}" style="font-size:.8rem;padding:.3rem .7rem;">💬 Chat</a>
-
-                  <form method="post" action="{% url 'update_booking_status' b.id %}" style="margin:0;">
-                    {% csrf_token %}
-                    <input type="hidden" name="status" value="completed" />
-                    <button class="btn btn-secondary" style="font-size:.8rem;padding:.3rem .7rem;background:#3b82f6;border-color:#3b82f6;color:#fff;">🏁 Complete</button>
-                  </form>
-
-                  <form method="post" action="{% url 'cancel_ride_request' b.ride_request.id %}" style="margin:0;">
-                    {% csrf_token %}
-                    <button class="btn btn-secondary" style="font-size:.8rem;padding:.3rem .7rem;background:#ef4444;border-color:#ef4444;color:#fff;">🛑 Cancel</button>
-                  </form>
-                </div>
-              </div>
-
-            </li>
-          {% empty %}
-            <li style="color:var(--color-text-muted,#888);padding:.5rem 0;">No rides currently in progress.</li>
-          {% endfor %}
-        </ul>
+    <!-- Stats Grid -->
+    <div class="driver-stats-grid">
+      <div class="driver-stat-card stat-ongoing">
+        <div class="stat-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Ongoing Rides</div>
+          <div class="stat-value">{{ total_ongoing|default:0 }}</div>
+        </div>
       </div>
 
-      <!-- ══ AVAILABLE RIDES ══ -->
-      <div class="card">
-        <h3>Available Rides</h3>
-        <ul class="list">
-          {% for r in available_rides %}
-            <li>
-              <div>
-                <strong>{{ r.pickup_location }}</strong> → {{ r.dropoff_location }}
-                <small>· {{ r.created_at|date:"Y-m-d H:i" }}</small>
-              </div>
-              <form method="post" action="{% url 'create_booking' r.id %}">
-                {% csrf_token %}
-                <button class="btn btn-primary bg-emerald-600 hover:bg-emerald-700 text-white border-0">✅ Accept</button>
-              </form>
-            </li>
-          {% empty %}
-            <li>No available rides.</li>
-          {% endfor %}
-        </ul>
+      <div class="driver-stat-card stat-completed">
+        <div class="stat-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Total Completed</div>
+          <div class="stat-value">{{ total_completed|default:0 }}</div>
+        </div>
       </div>
 
-      <!-- ══ ALL BOOKINGS ══ -->
-      <div class="card">
-        <h3>My Bookings</h3>
-        <ul class="list">
-          {% for b in bookings %}
-            <li style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;">
-              <div style="flex:1;min-width:0;">
-                <strong>{{ b.ride_request.pickup_location }}</strong> → {{ b.ride_request.dropoff_location }}
-                <small>· {{ b.confirmed_at|date:"Y-m-d H:i" }} · {{ b.status|title }}</small>
-              </div>
-
-              <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0;flex-wrap:wrap;">
-                <!-- Payment badge inline -->
-                {% if b.payment %}
-                  <span style="background:rgba(34,197,94,.15);color:#22c55e;font-size:.7rem;font-weight:700;padding:.2rem .55rem;border-radius:999px;white-space:nowrap;">✅ Paid</span>
-                {% elif b.status == 'ongoing' %}
-                  <span style="background:rgba(251,191,36,.12);color:#f59e0b;font-size:.7rem;font-weight:700;padding:.2rem .55rem;border-radius:999px;white-space:nowrap;">⏳ Unpaid</span>
-                {% endif %}
-
-                {% if b.status != 'completed' and b.status != 'cancelled' %}
-                  <a class="btn btn-secondary" href="{% url 'chat_room' b.id %}" style="font-size:.8rem;padding:.3rem .7rem;">💬 Chat</a>
-                {% endif %}
-              </div>
-            </li>
-          {% empty %}
-            <li>No bookings yet.</li>
-          {% endfor %}
-        </ul>
+      <div class="driver-stat-card stat-rating">
+        <div class="stat-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Average Rating</div>
+          <div class="stat-value">{{ avg_rating|default:"–" }}</div>
+        </div>
       </div>
 
-      <!-- ══ REVIEWS ══ -->
-      <div class="card">
-        <h3>Your Reviews & Ratings</h3>
-        <p style="margin:0 0 .75rem 0;">Average rating: <strong id="avgRating">{{ avg_rating|default:"–" }}</strong></p>
-        <ul class="list">
-          {% for rv in reviews %}
-            <li>
-              ⭐ {{ rv.rating }} — {{ rv.feedback|default:"No feedback" }}
-              <small>· {{ rv.created_at|date:"Y-m-d" }}</small>
-            </li>
-          {% empty %}
-            <li>No reviews yet.</li>
-          {% endfor %}
-        </ul>
+      <div class="driver-stat-card stat-available">
+        <div class="stat-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Available Rides</div>
+          <div class="stat-value">{{ available_rides|length }}</div>
+        </div>
       </div>
-
-      <p id="driverMsg" class="msg"></p>
     </div>
+
+    <!-- Main Content Grid -->
+    <div class="driver-content-grid">
+     
+      <!-- Active Rides Section -->
+      <div class="driver-section active-rides-section">
+        <div class="section-header">
+          <div class="section-title-wrapper">
+            <h2 class="section-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              Active Rides
+            </h2>
+            {% if total_ongoing %}
+              <span class="section-badge">{{ total_ongoing }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="rides-list">
+          {% for b in ongoing_bookings %}
+            <div class="ride-card active-ride">
+              <div class="ride-card-header">
+                <div class="ride-route">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="10" r="3"/>
+                    <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/>
+                  </svg>
+                  <div class="route-text">
+                    <span class="route-from">{{ b.ride_request.pickup_location }}</span>
+                    <svg class="route-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                      <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                    <span class="route-to">{{ b.ride_request.dropoff_location }}</span>
+                  </div>
+                </div>
+                {% if b.payment %}
+                  <span class="payment-badge paid">✓ Paid</span>
+                {% else %}
+                  <span class="payment-badge unpaid">Unpaid</span>
+                {% endif %}
+              </div>
+
+              <div class="ride-card-body">
+                <div class="customer-info">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  <span>{{ b.ride_request.customer.username }}</span>
+                </div>
+                <div class="ride-time">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  <span>{{ b.confirmed_at|date:"M d, Y · H:i" }}</span>
+                </div>
+              </div>
+
+              <div class="ride-card-actions">
+                <a href="{% url 'chat_room' b.id %}" class="btn btn-secondary btn-sm">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  Chat
+                </a>
+                <form method="post" action="{% url 'update_booking_status' b.id %}" style="margin:0;">
+                  {% csrf_token %}
+                  <input type="hidden" name="status" value="completed" />
+                  <button class="btn btn-primary btn-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Complete
+                  </button>
+                </form>
+                <form method="post" action="{% url 'cancel_ride_request' b.ride_request.id %}" style="margin:0;">
+                  {% csrf_token %}
+                  <button class="btn btn-danger btn-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="15" y1="9" x2="9" y2="15"/>
+                      <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    Cancel
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% empty %}
+            <div class="empty-state">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <h3>No Active Rides</h3>
+              <p>Check available rides below to start earning!</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Available Rides Section -->
+      <div class="driver-section available-rides-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            Available Rides Nearby
+          </h2>
+        </div>
+
+        <div class="rides-list">
+          {% for r in available_rides %}
+            <div class="ride-card available-ride">
+              <div class="ride-card-header">
+                <div class="ride-route">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="10" r="3"/>
+                    <path d="M12 21.7C17.3 17 20 13 20 10a8 8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/>
+                  </svg>
+                  <div class="route-text">
+                    <span class="route-from">{{ r.pickup_location }}</span>
+                    <svg class="route-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                      <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                    <span class="route-to">{{ r.dropoff_location }}</span>
+                  </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+              </div>
+
+              <div class="ride-card-body">
+                <div class="customer-info">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  <span>{{ r.customer.username }}</span>
+                </div>
+                <div class="ride-time">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  <span>{{ r.created_at|date:"M d, Y · H:i" }}</span>
+                </div>
+              </div>
+
+              <div class="ride-card-actions">
+                <form method="post" action="{% url 'create_booking' r.id %}" style="margin:0;width:100%;">
+                  {% csrf_token %}
+                  <button class="btn btn-primary btn-block">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Accept Ride
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% empty %}
+            <div class="empty-state">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <h3>No Available Rides</h3>
+              <p>New ride requests will appear here</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Recent Activity & Reviews -->
+    <div class="driver-bottom-grid">
+     
+      <!-- Recent Bookings -->
+      <div class="driver-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            Recent Bookings
+          </h2>
+        </div>
+
+        <div class="bookings-list">
+          {% for b in bookings|slice:":5" %}
+            <div class="booking-item">
+              <div class="booking-route">
+                <span class="booking-from">{{ b.ride_request.pickup_location }}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+                <span class="booking-to">{{ b.ride_request.dropoff_location }}</span>
+              </div>
+              <div class="booking-meta">
+                <span class="status-badge status-{{ b.status }}">{{ b.status|title }}</span>
+                {% if b.payment %}
+                  <span class="payment-badge paid">✓ Paid</span>
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <p class="empty-text">No bookings yet</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Reviews -->
+      <div class="driver-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            Recent Reviews
+          </h2>
+        </div>
+
+        <div class="reviews-list">
+          {% for rv in reviews|slice:":5" %}
+            <div class="review-item">
+              <div class="review-rating">
+                {% for i in "12345" %}
+                  {% if forloop.counter <= rv.rating %}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  {% else %}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <p class="review-feedback">{{ rv.feedback|default:"No feedback provided" }}</p>
+              <span class="review-date">{{ rv.created_at|date:"M d, Y" }}</span>
+            </div>
+          {% empty %}
+            <p class="empty-text">No reviews yet</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
   </div>
 </section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const navDriver = document.getElementById('navDriver');
+    if (navDriver) {
+      navDriver.classList.add('active');
+    }
+  });
+</script>
 {% endblock %}
