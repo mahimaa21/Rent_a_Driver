@@ -14,66 +14,62 @@
 
      
       <div class="card rides-card enhanced-rides">
-        <div class="card-header">
-          <h3>📋 My Ride Requests</h3>
-          <p class="card-subtitle">Track your current and past ride requests</p>
+        <div class="card-header card-header-with-btn">
+          <div>
+            <h3>🚗 Active Rides</h3>
+            <p class="card-subtitle">Your current ongoing ride requests</p>
+          </div>
+          <a href="{% url 'all_ride_requests' %}" class="btn btn-secondary see-all-btn">
+            View All History
+          </a>
         </div>
        
         <div class="rides-container">
           <ul class="rides-list">
             {% for r in rides %}
+              {# Show ride if it's not paid yet AND not cancelled (active = unpaid & not cancelled) #}
+              {% if r.status != 'cancelled' %}
+                {% if r.booking and not r.booking.payment %}
               <li>
                 <div>
                   <strong>{{ r.pickup_location }}</strong> → {{ r.dropoff_location }}
                   <small>· {{ r.created_at|date:"Y-m-d H:i" }} · {{ r.status|title }}</small>
                 </div>
+               
+                {# Chat button for accepted/ongoing rides #}
                 {% if r.booking and r.booking.status != 'completed' and r.booking.status != 'cancelled' %}
-                  <div style="margin:.25rem 0;">
+                  <div class="chat-btn-wrapper">
                     <a class="btn btn-secondary" href="{% url 'chat_room' r.booking.id %}">💬 Chat</a>
                   </div>
                 {% endif %}
 
-                <!-- ✅ NEW: Show driver info card when ride is accepted -->
+                {# Show driver info card when ride is accepted #}
                 {% if r.status == 'accepted' and accepted_ride_info and accepted_ride_info.ride.id == r.id %}
-                  <div class="driver-info-card" style="
-                    margin-top: .75rem;
-                    padding: .75rem 1rem;
-                    background: #f0f9ff;
-                    border: 1px solid #bae6fd;
-                    border-radius: 10px;
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    flex-wrap: wrap;
-                  ">
+                  <div class="driver-info-card">
                     {% if accepted_ride_info.driver_picture %}
                       <img
                         src="{{ accepted_ride_info.driver_picture.url }}"
                         alt="Driver photo"
-                        style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #38bdf8;"
+                        class="driver-photo"
                       />
                     {% else %}
-                      <div style="
-                        width:60px;height:60px;border-radius:50%;
-                        background:#cbd5e1;display:flex;align-items:center;
-                        justify-content:center;font-size:1.5rem;
-                      ">🧑</div>
+                      <div class="driver-photo-placeholder">🧑</div>
                     {% endif %}
  
                     <div>
-                      <p style="margin:0;font-weight:600;font-size:1rem;">🚗 Your Driver is on the way!</p>
-                      <p style="margin:.15rem 0 0;"><strong>Name:</strong> {{ accepted_ride_info.driver_name }}</p>
+                      <p class="driver-heading">🚗 Your Driver is on the way!</p>
+                      <p class="driver-detail"><strong>Name:</strong> {{ accepted_ride_info.driver_name }}</p>
                      
-                      <p style="margin:.1rem 0 0;">
+                      <p class="driver-detail-phone">
                         <strong>Phone:</strong>
                         {% if accepted_ride_info.driver_phone %}
                           <a href="tel:{{ accepted_ride_info.driver_phone }}">{{ accepted_ride_info.driver_phone }}</a>
                         {% else %}
-                          <span style="color:#94a3b8;">Not provided</span>
+                          <span class="driver-phone-unavailable">Not provided</span>
                         {% endif %}
                       </p>
                       {% if accepted_ride_info.driver_lat and accepted_ride_info.driver_lng %}
-                        <p style="margin:.1rem 0 0;">
+                        <p class="driver-detail-location">
                           <strong>Location:</strong>
                           <a
                             href="https://maps.google.com/?q={{ accepted_ride_info.driver_lat }},{{ accepted_ride_info.driver_lng }}"
@@ -87,37 +83,74 @@
                 {% endif %}
                 <!-- END driver info card -->
 
-
-
-
-
-                {% if r.status == 'pending' %}
-                  <a class="btn btn-secondary" href="{% url 'edit_ride_request' r.id %}">Edit</a>
-                  <form method="post" action="{% url 'cancel_ride_request' r.id %}" style="display:inline-block;">
-                    {% csrf_token %}
-                    <button class="btn btn-secondary">Cancel</button>
-                  </form>
-                {% elif r.status != 'completed' and r.status != 'cancelled' %}
-                  <form method="post" action="{% url 'cancel_ride_request' r.id %}">
-                    {% csrf_token %}
-                    <button class="btn btn-secondary">Cancel</button>
-                  </form>
-                {% endif %}
+                {# Action buttons based on ride status #}
+                <div class="ride-actions">
+                  {% if r.status == 'pending' %}
+                    <a class="btn btn-secondary" href="{% url 'edit_ride_request' r.id %}">Edit</a>
+                    <form method="post" action="{% url 'cancel_ride_request' r.id %}" class="cancel-form-inline">
+                      {% csrf_token %}
+                      <button class="btn btn-secondary">Cancel</button>
+                    </form>
+                  {% elif r.status == 'accepted' %}
+                    <form method="post" action="{% url 'cancel_ride_request' r.id %}">
+                      {% csrf_token %}
+                      <button class="btn btn-secondary">Cancel</button>
+                    </form>
+                  {% elif r.status == 'completed' %}
+                    {# Payment button #}
+                    <a href="{% url 'payments:pay_ride' r.booking.id %}" class="btn btn-primary payment-btn">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                        <line x1="1" y1="10" x2="23" y2="10"/>
+                      </svg>
+                      Make Payment
+                    </a>
+                   
+                    {# Review button #}
+                    {% if not r.booking.review %}
+                      <a href="{% url 'all_reviews' %}" class="btn btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        Leave Review
+                      </a>
+                    {% else %}
+                      <span class="badge badge-success">✓ Reviewed</span>
+                    {% endif %}
+                  {% endif %}
+                </div>
               </li>
+                {% elif r.status == 'pending' %}
+                  {# Show pending rides without booking #}
+                  <li>
+                    <div>
+                      <strong>{{ r.pickup_location }}</strong> → {{ r.dropoff_location }}
+                      <small>· {{ r.created_at|date:"Y-m-d H:i" }} · {{ r.status|title }}</small>
+                    </div>
+                    <div class="ride-actions">
+                      <a class="btn btn-secondary" href="{% url 'edit_ride_request' r.id %}">Edit</a>
+                      <form method="post" action="{% url 'cancel_ride_request' r.id %}" class="cancel-form-inline">
+                        {% csrf_token %}
+                        <button class="btn btn-secondary">Cancel</button>
+                      </form>
+                    </div>
+                  </li>
+                {% endif %}
+              {% endif %}
             {% empty %}
-              <li>No ride requests yet.</li>
+              <li>No active rides at the moment.</li>
             {% endfor %}
           </ul>
          
-          <div class="empty-state" {% if rides %}style="display:none;"{% endif %}>
+          <div class="empty-state" style="display:none;">
             <svg class="empty-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M9 12l2 2 4-4"/>
               <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
               <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
               <path d="M3 12h6m6 0h6"/>
             </svg>
-            <h4>No ride requests yet</h4>
-            <p>Create your first ride request to get started!</p>
+            <h4>No active rides</h4>
+            <p>Create a new ride request to get started!</p>
           </div>
         </div>
 
@@ -152,109 +185,31 @@
       </div>
 
      
-      <div class="card">
-        <div class="card-header">
-          <h3>⭐ Reviews</h3>
-          <p class="card-subtitle">Leave a review for completed rides</p>
-        </div>
-        <ul class="rides-list">
-          {% for b in customer_bookings %}
-            {% if b.status == 'completed' %}
-              <li>
-                <div>
-                  <strong>Ride:</strong> {{ b.ride_request.pickup_location }} → {{ b.ride_request.dropoff_location }}
-                  <small>· {{ b.confirmed_at|date:"Y-m-d H:i" }}</small>
-                </div>
-                {% if not b.review %}
-                  <form method="post" action="{% url 'create_review' b.id %}" class="inline" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <label>Rating:</label>
-                    <select name="rating">
-                      <option value="5">5</option>
-                      <option value="4">4</option>
-                      <option value="3">3</option>
-                      <option value="2">2</option>
-                      <option value="1">1</option>
-                    </select>
-                    <input type="text" name="feedback" placeholder="Feedback (optional)" />
-                    <input type="file" name="image" accept="image/*" />
-                    <button class="btn btn-primary">Submit</button>
-                  </form>
-                {% else %}
-                  <p>Review submitted: ⭐ {{ b.review.rating }} — {{ b.review.feedback|default:"No feedback" }}
-                    {% if b.review.image %}
-                      <br/>
-                      <img src="{{ b.review.image.url }}" alt="Review image" style="max-width:200px;max-height:200px;margin-top:.25rem;border-radius:6px;object-fit:cover;" />
-                    {% endif %}
-                    <form method="post" action="{% url 'delete_review' b.review.id %}" style="display:inline; margin-left:.5rem;">
-                      {% csrf_token %}
-                      <button class="btn btn-secondary">Delete Review</button>
-                    </form>
-                  </p>
-                {% endif %}
-              </li>
-            {% endif %}
-          {% empty %}
-            <li>No bookings yet.</li>
-          {% endfor %}
-        </ul>
-      </div>
-
-     
       <div class="card create-card enhanced-form">
         <div class="form-header">
-          <h3>🚗 Create a Ride Request</h3>
-          <p class="form-subtitle">Fill in the details for your ride request</p>
+          <h3>🚗 Need a Driver?</h3>
+          <p class="form-subtitle">Create a new ride request and get matched with nearby drivers</p>
         </div>
        
-        <form method="post" action="{% url 'customer_dashboard' %}" class="ride-request-form">
-          {% csrf_token %}
-          <div class="form-group">
-            <label for="pickup" class="form-label">
-              <svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 6v6l4 2"/>
-              </svg>
-              Pickup Location
-            </label>
-            <input type="text" name="pickup" class="form-input" placeholder="Enter your pickup address" required />
+        <div class="create-card-content">
+          <a href="{% url 'create_ride_request' %}" class="btn btn-primary btn-large create-btn-large">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Create Ride Request
+          </a>
+         
+          <div class="quick-info-box">
+            <p class="quick-info-title">✨ Quick & Easy</p>
+            <ul class="quick-info-list">
+              <li>📍 Enter pickup & dropoff locations</li>
+              <li>🚗 Provide your car details</li>
+              <li>⚡ Get matched with nearby drivers instantly</li>
+            </ul>
           </div>
-
-          <div class="form-group">
-            <label for="dropoff" class="form-label">
-              <svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                <circle cx="12" cy="10" r="3"/>
-              </svg>
-              Dropoff Location
-            </label>
-            <input type="text" name="dropoff" class="form-input" placeholder="Enter your destination address" required />
-          </div>
-
-          <div class="form-group">
-            <label for="carName" class="form-label">
-              <svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14,2 14,8 20,8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-                <polyline points="10,9 9,9 8,9"/>
-              </svg>
-              Your Car Details
-            </label>
-            <input type="text" name="carName" class="form-input" placeholder="e.g., Honda Civic, Toyota Camry" required />
-            <small class="form-help">Please provide your car make and model</small>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-large w-100">
-              <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-              Create Ride Request
-            </button>
-          </div>
-        </form>
+        </div>
        
         {% if messages %}
           <ul class="msg mt-3">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
