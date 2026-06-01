@@ -1,214 +1,340 @@
 {% extends "base.html" %}
-{% block title %}Payments{% endblock %}
+{% block title %}Payments - Rent a Driver{% endblock %}
 
 {% block content %}
-<section class="dashboard">
-  <div class="container" style="max-width:640px;">
+<section class="payments-page">
+  <div class="container payments-container">
 
-    <!-- ══ PENDING PAYMENTS ══ -->
-    <div class="payments-header">
-      <h2 class="payments-title" style="align-items: center; text-align: center; font-weight: 700; font-size: 25px; padding-bottom: 50px;">💳 Payments</h2>
-    </div>
-
-    <div class="payments">
-      <div class="rides-container">
-        <ul class="rides-list">
-          {% for booking in bookings %}
-            <li style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
-              <div>
-                <strong>{{ booking.ride_request.pickup_location }}</strong> → {{ booking.ride_request.dropoff_location }}
-                <br>
-                <small>
-                  Driver:
-                  {% if booking.driver.driverprofile.full_name %}{{ booking.driver.driverprofile.full_name }}{% else %}{{ booking.driver.username }}{% endif %}
-                  &nbsp;·&nbsp;{{ booking.ride_request.created_at|date:"Y-m-d H:i" }}
-                  &nbsp;·&nbsp;
-                  {% if booking.status == 'completed' %}
-                    <span style="color:#f59e0b;font-weight:600;">⚠️ Completed — Unpaid</span>
-                  {% else %}
-                    <span style="color:#22c55e;font-weight:600;">Accepted</span>
-                  {% endif %}
-                </small>
-              </div>
-              <div style="display:flex;gap:.5rem;flex-shrink:0;">
-                <a class="btn btn-secondary" href="{% url 'chat_room' booking.id %}">💬 Chat</a>
-                <button class="btn accept-btn" style="background:#22c55e;border-color:#22c55e;"
-                        onclick="openPayModal('{{ booking.id }}','{{ booking.ride_request.pickup_location|escapejs }}','{{ booking.ride_request.dropoff_location|escapejs }}')">
-                  💳 Pay
-                </button>
-              </div>
-            </li>
-          {% empty %}
-            <li style="color:var(--color-text-muted,#888);">No accepted rides pending payment.</li>
-          {% endfor %}
-        </ul>
-        <div class="empty-state" {% if bookings %}style="display:none;"{% endif %}>
-          <svg class="empty-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
-          </svg>
-          <h4>No pending payments</h4>
-          <p>Rides accepted by a driver will appear here.</p>
-        </div>
+    <!-- Page Header -->
+    <div class="payments-page-header">
+      <div class="header-content">
+        <h1 class="page-title">💳 Payments</h1>
+        <p class="page-subtitle">Manage your ride payments and transaction history</p>
       </div>
     </div>
 
-    <!-- ══ TRANSACTION HISTORY ══ -->
-    <div style="margin-top:2.5rem;">
-      <h3 style="font-size:1.15rem;font-weight:700;margin-bottom:1rem;">🧾 Transaction History</h3>
+    <!-- Pending Payments Section -->
+    <div class="payments-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Pending Payments
+        </h2>
+        {% if bookings %}
+          <span class="badge badge-warning">{{ bookings|length }} pending</span>
+        {% endif %}
+      </div>
+
+      <div class="pending-payments-grid">
+        {% for booking in bookings %}
+          <div class="payment-card">
+            <div class="payment-card-header">
+              <div class="route-info">
+                <h3 class="route-title">{{ booking.ride_request.pickup_location }}</h3>
+                <svg class="route-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+                <h3 class="route-title">{{ booking.ride_request.dropoff_location }}</h3>
+              </div>
+              {% if booking.status == 'completed' %}
+                <span class="status-badge status-unpaid">⚠️ Unpaid</span>
+              {% else %}
+                <span class="status-badge status-accepted">✓ Accepted</span>
+              {% endif %}
+            </div>
+
+            <div class="payment-card-body">
+              <div class="payment-detail">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span class="detail-label">Driver:</span>
+                <span class="detail-value">
+                  {% if booking.driver.driverprofile.full_name %}
+                    {{ booking.driver.driverprofile.full_name }}
+                  {% else %}
+                    {{ booking.driver.username }}
+                  {% endif %}
+                </span>
+              </div>
+
+              <div class="payment-detail">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span class="detail-label">Date:</span>
+                <span class="detail-value">{{ booking.ride_request.created_at|date:"F d, Y · H:i" }}</span>
+              </div>
+            </div>
+
+            <div class="payment-card-actions">
+              <a href="{% url 'chat_room' booking.id %}" class="btn btn-secondary btn-sm">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Chat
+              </a>
+              <button class="btn btn-primary btn-sm" onclick="openPayModal('{{ booking.id }}','{{ booking.ride_request.pickup_location|escapejs }}','{{ booking.ride_request.dropoff_location|escapejs }}')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                  <line x1="1" y1="10" x2="23" y2="10"/>
+                </svg>
+                Pay Now
+              </button>
+            </div>
+          </div>
+        {% empty %}
+          <div class="empty-state-card">
+            <svg class="empty-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="5" width="20" height="14" rx="2"/>
+              <path d="M2 10h20"/>
+            </svg>
+            <h3 class="empty-title">No Pending Payments</h3>
+            <p class="empty-description">Rides accepted by a driver will appear here for payment.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Transaction History Section -->
+    <div class="payments-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          Recent Transactions
+        </h2>
+        <div class="section-header-actions">
+          {% if paid_payments %}
+            <span class="badge badge-success">{{ paid_payments|length }} total</span>
+            <a href="{% url 'payments:transaction_history' %}" class="btn btn-secondary btn-sm">
+              View All History
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </a>
+          {% endif %}
+        </div>
+      </div>
 
       {% if paid_payments %}
-        <div style="overflow-x:auto;">
-          <table style="width:100%;border-collapse:collapse;font-size:.875rem;">
+        <div class="transactions-table-wrapper">
+          <table class="transactions-table">
             <thead>
-              <tr style="border-bottom:2px solid var(--color-border,#333);text-align:left;">
-                <th style="padding:.6rem .75rem;color:var(--color-text-muted,#888);font-weight:600;">#</th>
-                <th style="padding:.6rem .75rem;color:var(--color-text-muted,#888);font-weight:600;">Route</th>
-                <th style="padding:.6rem .75rem;color:var(--color-text-muted,#888);font-weight:600;">Driver</th>
-                <th style="padding:.6rem .75rem;color:var(--color-text-muted,#888);font-weight:600;">Method</th>
-                <th style="padding:.6rem .75rem;color:var(--color-text-muted,#888);font-weight:600;">Account</th>
-                <th style="padding:.6rem .75rem;color:var(--color-text-muted,#888);font-weight:600;">Amount</th>
-                <th style="padding:.6rem .75rem;color:var(--color-text-muted,#888);font-weight:600;">Date</th>
-                <th style="padding:.6rem .75rem;color:var(--color-text-muted,#888);font-weight:600;">Status</th>
+              <tr>
+                <th>#</th>
+                <th>Route</th>
+                <th>Driver</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              {% for p in paid_payments %}
-                <tr style="border-bottom:1px solid var(--color-border,#2a2a3a);transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background=''">
-                  <td style="padding:.65rem .75rem;color:var(--color-text-muted,#888);">{{ forloop.counter }}</td>
-                  <td style="padding:.65rem .75rem;">
-                    <span style="font-weight:600;">{{ p.booking.ride_request.pickup_location }}</span>
-                    <span style="color:var(--color-text-muted,#888);"> → </span>
-                    {{ p.booking.ride_request.dropoff_location }}
+              {% for p in paid_payments|slice:":5" %}
+                <tr>
+                  <td class="td-number">{{ forloop.counter }}</td>
+                  <td class="td-route">
+                    <span class="route-from">{{ p.booking.ride_request.pickup_location }}</span>
+                    <svg class="route-arrow-sm" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                      <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                    <span class="route-to">{{ p.booking.ride_request.dropoff_location }}</span>
                   </td>
-                  <td style="padding:.65rem .75rem;">
-                    {% if p.booking.driver.driverprofile.full_name %}{{ p.booking.driver.driverprofile.full_name }}{% else %}{{ p.booking.driver.username }}{% endif %}
-                  </td>
-                  <td style="padding:.65rem .75rem;">
-                    {% if p.method == 'bkash' %}
-                      <span style="display:inline-flex;align-items:center;gap:.35rem;background:#e2136e22;color:#e2136e;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;">bKash</span>
-                    {% elif p.method == 'nagad' %}
-                      <span style="display:inline-flex;align-items:center;gap:.35rem;background:#f7941d22;color:#f7941d;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;">Nagad</span>
+                  <td>
+                    {% if p.booking.driver.driverprofile.full_name %}
+                      {{ p.booking.driver.driverprofile.full_name }}
                     {% else %}
-                      <span style="display:inline-flex;align-items:center;gap:.35rem;background:#3b82f622;color:#3b82f6;font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;">Bank</span>
+                      {{ p.booking.driver.username }}
                     {% endif %}
                   </td>
-                  <td style="padding:.65rem .75rem;font-family:monospace;">{{ p.account_number }}</td>
-                  <td style="padding:.65rem .75rem;font-weight:700;color:#22c55e;">৳{{ p.amount }}</td>
-                  <td style="padding:.65rem .75rem;color:var(--color-text-muted,#888);">{{ p.paid_at|date:"Y-m-d H:i" }}</td>
-                  <td style="padding:.65rem .75rem;">
-                    <span style="background:rgba(34,197,94,.15);color:#22c55e;font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;">✅ Paid</span>
+                  <td>
+                    {% if p.method == 'bkash' %}
+                      <span class="method-badge method-bkash">bKash</span>
+                    {% elif p.method == 'nagad' %}
+                      <span class="method-badge method-nagad">Nagad</span>
+                    {% else %}
+                      <span class="method-badge method-bank">Bank</span>
+                    {% endif %}
+                  </td>
+                  <td class="td-amount">৳{{ p.amount }}</td>
+                  <td class="td-date">{{ p.paid_at|date:"Y-m-d H:i" }}</td>
+                  <td>
+                    <span class="status-badge status-paid">✓ Paid</span>
                   </td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
+       
+        {% if paid_payments|length > 5 %}
+          <div class="view-all-footer">
+            <a href="{% url 'payments:transaction_history' %}" class="btn btn-primary">
+              View All {{ paid_payments|length }} Transactions
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </a>
+          </div>
+        {% endif %}
       {% else %}
-        <p style="color:var(--color-text-muted,#888);">No transactions yet.</p>
+        <div class="empty-state-card">
+          <svg class="empty-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <h3 class="empty-title">No Transactions Yet</h3>
+          <p class="empty-description">Your payment history will appear here once you complete a payment.</p>
+        </div>
       {% endif %}
     </div>
 
   </div>
 </section>
 
-<!-- ═══════════════ PAYMENT MODAL ═══════════════ -->
-<div id="payModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.6);backdrop-filter:blur(5px);align-items:center;justify-content:center;">
-  <div style="background:var(--color-surface,#ffffff);border:1px solid var(--color-border,#333);border-radius:18px;padding:2rem;width:min(440px,94vw);box-shadow:0 24px 64px rgba(0,0,0,.5);">
-
-    <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
-      <div>
-        <h3 style="margin:0;font-size:1.2rem;" id="modalTitle">Choose Payment Method</h3>
-        <p id="modalRideInfo" style="font-size:.8rem;color:var(--color-text-muted,#888);margin:.25rem 0 0;"></p>
+<!-- Payment Modal -->
+<div id="payModal" class="payment-modal">
+  <div class="modal-overlay" onclick="closePayModal()"></div>
+  <div class="modal-content">
+   
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="modal-title-wrapper">
+        <h3 class="modal-title" id="modalTitle">Choose Payment Method</h3>
+        <p class="modal-subtitle" id="modalRideInfo"></p>
       </div>
-      <button onclick="closePayModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--color-text-muted,#888);line-height:1;">✕</button>
+      <button class="modal-close" onclick="closePayModal()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
 
-    <!-- Step indicator -->
-    <div style="display:flex;gap:.5rem;margin-bottom:1.5rem;align-items:center;">
-      <div id="step1dot" style="width:28px;height:28px;border-radius:50%;background:#22c55e;color:#fff;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;">1</div>
-      <div style="flex:1;height:2px;background:var(--color-border,#333);" id="stepLine"></div>
-      <div id="step2dot" style="width:28px;height:28px;border-radius:50%;background:var(--color-border,#333);color:var(--color-text-muted,#888);font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;">2</div>
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+      <div class="step-item step-active" id="step1indicator">
+        <div class="step-number">1</div>
+        <span class="step-label">Method</span>
+      </div>
+      <div class="step-line" id="stepLine"></div>
+      <div class="step-item" id="step2indicator">
+        <div class="step-number">2</div>
+        <span class="step-label">Details</span>
+      </div>
     </div>
 
+    <!-- Form -->
     <form id="payForm" method="post" action="">
       {% csrf_token %}
       <input type="hidden" name="method" id="selectedMethod" value="">
 
-      <!-- ── STEP 1: Choose method ── -->
-      <div id="step1">
-        <div style="display:grid;gap:.65rem;margin-bottom:1.5rem;">
-
-          <label class="pay-option" for="opt_bkash" style="display:flex;align-items:center;gap:1rem;padding:.9rem 1.1rem;border:2px solid var(--color-border,#333);border-radius:12px;cursor:pointer;transition:border-color .2s,background .2s;">
-            <input type="radio" name="pay_method_ui" id="opt_bkash" value="bkash" style="display:none;" onchange="selectMethod('bkash',this)">
-            <div style="width:42px;height:42px;border-radius:10px;background:#e2136e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <span style="color:#fff;font-weight:800;font-size:.8rem;">bK</span>
+      <!-- Step 1: Choose Method -->
+      <div id="step1" class="modal-step">
+        <div class="payment-methods">
+         
+          <label class="payment-method-option" for="opt_bkash">
+            <input type="radio" name="pay_method_ui" id="opt_bkash" value="bkash" onchange="selectMethod('bkash',this)">
+            <div class="method-icon method-icon-bkash">
+              <span>bK</span>
             </div>
-            <div>
-              <div style="font-weight:600;">bKash</div>
-              <div style="font-size:.78rem;color:var(--color-text-muted,#888);">Mobile banking · Fast & easy</div>
+            <div class="method-info">
+              <div class="method-name">bKash</div>
+              <div class="method-desc">Mobile banking · Fast & easy</div>
             </div>
-            <div class="pay-check" style="margin-left:auto;display:none;color:#22c55e;font-size:1.2rem;font-weight:700;">✓</div>
+            <div class="method-check">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
           </label>
 
-          <label class="pay-option" for="opt_nagad" style="display:flex;align-items:center;gap:1rem;padding:.9rem 1.1rem;border:2px solid var(--color-border,#333);border-radius:12px;cursor:pointer;transition:border-color .2s,background .2s;">
-            <input type="radio" name="pay_method_ui" id="opt_nagad" value="nagad" style="display:none;" onchange="selectMethod('nagad',this)">
-            <div style="width:42px;height:42px;border-radius:10px;background:#f7941d;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <span style="color:#fff;font-weight:800;font-size:.75rem;">NG</span>
+          <label class="payment-method-option" for="opt_nagad">
+            <input type="radio" name="pay_method_ui" id="opt_nagad" value="nagad" onchange="selectMethod('nagad',this)">
+            <div class="method-icon method-icon-nagad">
+              <span>NG</span>
             </div>
-            <div>
-              <div style="font-weight:600;">Nagad</div>
-              <div style="font-size:.78rem;color:var(--color-text-muted,#888);">Mobile banking · Instant</div>
+            <div class="method-info">
+              <div class="method-name">Nagad</div>
+              <div class="method-desc">Mobile banking · Instant</div>
             </div>
-            <div class="pay-check" style="margin-left:auto;display:none;color:#22c55e;font-size:1.2rem;font-weight:700;">✓</div>
+            <div class="method-check">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
           </label>
 
-          <label class="pay-option" for="opt_bank" style="display:flex;align-items:center;gap:1rem;padding:.9rem 1.1rem;border:2px solid var(--color-border,#333);border-radius:12px;cursor:pointer;transition:border-color .2s,background .2s;">
-            <input type="radio" name="pay_method_ui" id="opt_bank" value="bank" style="display:none;" onchange="selectMethod('bank',this)">
-            <div style="width:42px;height:42px;border-radius:10px;background:#3b82f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <span style="color:#fff;font-size:1.15rem;">🏦</span>
+          <label class="payment-method-option" for="opt_bank">
+            <input type="radio" name="pay_method_ui" id="opt_bank" value="bank" onchange="selectMethod('bank',this)">
+            <div class="method-icon method-icon-bank">
+              <span>🏦</span>
             </div>
-            <div>
-              <div style="font-weight:600;">Bank Transfer</div>
-              <div style="font-size:.78rem;color:var(--color-text-muted,#888);">Direct bank payment</div>
+            <div class="method-info">
+              <div class="method-name">Bank Transfer</div>
+              <div class="method-desc">Direct bank payment</div>
             </div>
-            <div class="pay-check" style="margin-left:auto;display:none;color:#22c55e;font-size:1.2rem;font-weight:700;">✓</div>
+            <div class="method-check">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
           </label>
 
         </div>
 
-        <button type="button" id="nextBtn" onclick="goToStep2()" disabled
-                style="width:100%;padding:.85rem;border:none;border-radius:10px;background:#22c55e;color:#fff;font-size:1rem;font-weight:700;cursor:not-allowed;opacity:.45;transition:opacity .2s,cursor .2s;">
-          Next →
+        <button type="button" id="nextBtn" onclick="goToStep2()" disabled class="btn btn-primary btn-large btn-disabled">
+          Next
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
         </button>
       </div>
 
-      <!-- ── STEP 2: Account & Amount ── -->
-      <div id="step2" style="display:none;">
-        <div id="methodBadge" style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;padding:.75rem 1rem;border-radius:10px;background:rgba(255,255,255,.05);"></div>
+      <!-- Step 2: Account & Amount -->
+      <div id="step2" class="modal-step" style="display:none;">
+        <div id="methodBadge" class="selected-method-badge"></div>
 
-        <div style="margin-bottom:1rem;">
-          <label style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem;" id="accountLabel">Account Number</label>
-          <input type="text" name="account_number" id="accountNumber" placeholder="e.g. 01XXXXXXXXX"
-                 style="width:100%;padding:.75rem 1rem;border:2px solid var(--color-border,#333);border-radius:10px;background:var(--color-bg,#ffffff);color:inherit;font-size:.95rem;box-sizing:border-box;outline:none;transition:border-color .2s;"
-                 onfocus="this.style.borderColor='#22c55e'" onblur="this.style.borderColor='var(--color-border,#333)'" required>
+        <div class="form-group">
+          <label class="form-label" id="accountLabel">Account Number</label>
+          <input type="text" name="account_number" id="accountNumber" class="form-input" placeholder="e.g. 01XXXXXXXXX" required>
         </div>
 
-        <div style="margin-bottom:1.5rem;">
-          <label style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem;">Amount (৳)</label>
-          <input type="number" name="amount" id="amountInput" placeholder="Enter amount" min="1" step="0.01"
-                 style="width:100%;padding:.75rem 1rem;border:2px solid var(--color-border,#333);border-radius:10px;background:var(--color-bg,#ffffff);color:inherit;font-size:.95rem;box-sizing:border-box;outline:none;transition:border-color .2s;"
-                 onfocus="this.style.borderColor='#22c55e'" onblur="this.style.borderColor='var(--color-border,#333)'" required>
+        <div class="form-group">
+          <label class="form-label">Amount (৳)</label>
+          <input type="number" name="amount" id="amountInput" class="form-input" placeholder="Enter amount" min="1" step="0.01" required>
         </div>
 
-        <div style="display:flex;gap:.75rem;">
-          <button type="button" onclick="goToStep1()"
-                  style="flex:1;padding:.85rem;border:2px solid var(--color-border,#333);border-radius:10px;background:none;color:inherit;font-size:.95rem;font-weight:600;cursor:pointer;">
-            ← Back
+        <div class="modal-actions">
+          <button type="button" onclick="goToStep1()" class="btn btn-secondary btn-large">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="12" x2="5" y2="12"/>
+              <polyline points="12 19 5 12 12 5"/>
+            </svg>
+            Back
           </button>
-          <button type="submit" id="confirmBtn"
-                  style="flex:2;padding:.85rem;border:none;border-radius:10px;background:#22c55e;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;">
-            ✅ Confirm Payment
+          <button type="submit" class="btn btn-primary btn-large">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Confirm Payment
           </button>
         </div>
       </div>
@@ -217,80 +343,81 @@
   </div>
 </div>
 
-<style>
-  .pay-option:hover { border-color:#22c55e !important; }
-  .pay-option.selected { border-color:#22c55e !important; background:rgba(34,197,94,.07); }
-</style>
-
 <script>
   const methodMeta = {
-    bkash: { label:'bKash', color:'#e2136e', bg:'#e2136e22', icon:'bK' },
-    nagad:  { label:'Nagad',  color:'#f7941d', bg:'#f7941d22', icon:'NG' },
-    bank:   { label:'Bank Transfer', color:'#3b82f6', bg:'#3b82f622', icon:'🏦' },
+    bkash: { label:'bKash', color:'#e2136e', icon:'bK' },
+    nagad: { label:'Nagad', color:'#f7941d', icon:'NG' },
+    bank: { label:'Bank Transfer', color:'#3b82f6', icon:'🏦' },
   };
 
   function openPayModal(bookingId, pickup, dropoff) {
     document.getElementById('payForm').action = '/payments/pay/' + bookingId + '/';
     document.getElementById('modalRideInfo').textContent = pickup + ' → ' + dropoff;
     goToStep1(true);
-    document.getElementById('payModal').style.display = 'flex';
+    document.getElementById('payModal').classList.add('modal-open');
   }
 
   function closePayModal() {
-    document.getElementById('payModal').style.display = 'none';
+    document.getElementById('payModal').classList.remove('modal-open');
   }
 
   function selectMethod(method, radio) {
-    document.querySelectorAll('.pay-option').forEach(el => {
-      el.classList.remove('selected');
-      el.querySelector('.pay-check').style.display = 'none';
-    });
+    document.querySelectorAll('.payment-method-option').forEach(el => el.classList.remove('selected'));
     radio.closest('label').classList.add('selected');
-    radio.closest('label').querySelector('.pay-check').style.display = 'block';
     document.getElementById('selectedMethod').value = method;
     const btn = document.getElementById('nextBtn');
-    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+    btn.disabled = false;
+    btn.classList.remove('btn-disabled');
   }
 
   function goToStep2() {
     const method = document.getElementById('selectedMethod').value;
     if (!method) return;
     const m = methodMeta[method];
-    document.getElementById('methodBadge').innerHTML =
-      `<div style="width:36px;height:36px;border-radius:8px;background:${m.color};display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.8rem;flex-shrink:0;">${m.icon}</div>
-       <span style="font-weight:700;">${m.label}</span>`;
+   
+    let iconHtml = '';
+    if (method === 'bkash') {
+      iconHtml = `<div class="method-icon method-icon-bkash"><span>${m.icon}</span></div>`;
+    } else if (method === 'nagad') {
+      iconHtml = `<div class="method-icon method-icon-nagad"><span>${m.icon}</span></div>`;
+    } else {
+      iconHtml = `<div class="method-icon method-icon-bank"><span>${m.icon}</span></div>`;
+    }
+   
+    document.getElementById('methodBadge').innerHTML = iconHtml + `<span class="method-name">${m.label}</span>`;
+   
     const isBank = method === 'bank';
     document.getElementById('accountLabel').textContent = isBank ? 'Account / IBAN Number' : 'Mobile Number';
     document.getElementById('accountNumber').placeholder = isBank ? 'e.g. BD91XXXX...' : 'e.g. 01XXXXXXXXX';
+   
     document.getElementById('step1').style.display = 'none';
     document.getElementById('step2').style.display = 'block';
     document.getElementById('modalTitle').textContent = 'Payment Details';
-    document.getElementById('step2dot').style.background = '#22c55e';
-    document.getElementById('step2dot').style.color = '#fff';
-    document.getElementById('stepLine').style.background = '#22c55e';
+   
+    document.getElementById('step1indicator').classList.remove('step-active');
+    document.getElementById('step2indicator').classList.add('step-active');
+    document.getElementById('stepLine').classList.add('step-line-active');
   }
 
   function goToStep1(reset) {
     document.getElementById('step1').style.display = 'block';
     document.getElementById('step2').style.display = 'none';
     document.getElementById('modalTitle').textContent = 'Choose Payment Method';
-    document.getElementById('step2dot').style.background = 'var(--color-border,#333)';
-    document.getElementById('step2dot').style.color = 'var(--color-text-muted,#888)';
-    document.getElementById('stepLine').style.background = 'var(--color-border,#333)';
+   
+    document.getElementById('step1indicator').classList.add('step-active');
+    document.getElementById('step2indicator').classList.remove('step-active');
+    document.getElementById('stepLine').classList.remove('step-line-active');
+   
     if (reset) {
-      document.querySelectorAll('.pay-option').forEach(el => el.classList.remove('selected'));
-      document.querySelectorAll('.pay-check').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.payment-method-option').forEach(el => el.classList.remove('selected'));
       document.querySelectorAll('input[name="pay_method_ui"]').forEach(el => el.checked = false);
       document.getElementById('selectedMethod').value = '';
       const btn = document.getElementById('nextBtn');
-      btn.disabled = true; btn.style.opacity = '.45'; btn.style.cursor = 'not-allowed';
+      btn.disabled = true;
+      btn.classList.add('btn-disabled');
       document.getElementById('accountNumber').value = '';
       document.getElementById('amountInput').value = '';
     }
   }
-
-  document.getElementById('payModal').addEventListener('click', function(e) {
-    if (e.target === this) closePayModal();
-  });
 </script>
 {% endblock %}
