@@ -27,8 +27,8 @@
       <input type="text" name="license" placeholder="Enter license number" value="{% if profile %}{{ profile.license_number }}{% endif %}" required />
 
       <label>Phone Number</label>
-      <input type="text" name="phone_number" 
-       value="{{ profile.phone_number|default:'' }}" 
+      <input type="text" name="phone_number"
+       value="{{ profile.phone_number|default:'' }}"
        placeholder="e.g., 01XXXXXXXXX">
 
       <label>Vehicle Details</label>
