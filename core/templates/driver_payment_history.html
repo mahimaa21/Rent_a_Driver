@@ -1,93 +1,240 @@
 {% extends "base.html" %}
-{% block title %}Payment History{% endblock %}
+{% block title %}Payment History - Driver{% endblock %}
 
 {% block content %}
-<section class="dashboard-page">
-  <div class="dashboard-container">
-    <div class="dashboard-left">
-      <h2>💰 Payment History</h2>
-      <p style="color:var(--color-text-muted,#888);margin-top:.5rem;">All rides you've completed and their payment status.</p>
+<div class="driver-earnings-page">
+  <div class="driver-earnings-container">
+   
+    <!-- Header -->
+    <div class="earnings-header">
+      <div class="earnings-header-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <h1 class="earnings-title">Payment History</h1>
+      <p class="earnings-subtitle">Track your earnings and payment status</p>
+    </div>
 
-      <div style="margin-top:1.5rem;display:flex;flex-direction:column;gap:.75rem;">
-        {% with total=bookings|length paid_count=0 %}
-        <div class="info-card">
-          <p><strong>Total Rides:</strong> {{ bookings|length }}</p>
-          <p><strong>Paid Rides:</strong>
-            {% with paid=bookings|length %}
-              {% for b in bookings %}{% if b.payment %}{% endif %}{% endfor %}
-            {% endwith %}
-            {{ paid_bookings_count|default:"—" }}
-          </p>
+    <!-- Stats Cards -->
+    <div class="earnings-stats-grid">
+      <div class="earnings-stat-card stat-total">
+        <div class="stat-icon-wrapper">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18.4 10c-.3-.8-1-1.4-1.9-1.4H7.5c-.9 0-1.6.6-1.9 1.4L3.5 11.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"/>
+            <circle cx="7" cy="17" r="2"/>
+            <circle cx="17" cy="17" r="2"/>
+          </svg>
         </div>
-        {% endwith %}
+        <div class="stat-content">
+          <p class="stat-label">Total Rides</p>
+          <p class="stat-value">{{ total_rides }}</p>
+        </div>
+      </div>
+
+      <div class="earnings-stat-card stat-paid">
+        <div class="stat-icon-wrapper">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Paid Rides</p>
+          <p class="stat-value">{{ paid_rides }}</p>
+        </div>
+      </div>
+
+      <div class="earnings-stat-card stat-unpaid">
+        <div class="stat-icon-wrapper">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Pending Payment</p>
+          <p class="stat-value">{{ unpaid_rides }}</p>
+        </div>
+      </div>
+
+      <div class="earnings-stat-card stat-earnings">
+        <div class="stat-icon-wrapper">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Total Earnings</p>
+          <p class="stat-value">৳{{ total_earnings|floatformat:2 }}</p>
+        </div>
       </div>
     </div>
 
-    <div class="dashboard-right">
-      <div class="card">
-        <h3>All Bookings</h3>
+    <!-- Filter Tabs -->
+    <div class="earnings-filters">
+      <button onclick="filterPayments('all')" id="tab-all" class="filter-tab active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"/>
+          <line x1="8" y1="12" x2="21" y2="12"/>
+          <line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/>
+          <line x1="3" y1="12" x2="3.01" y2="12"/>
+          <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        All Rides
+      </button>
+      <button onclick="filterPayments('paid')" id="tab-paid" class="filter-tab">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        Paid
+      </button>
+      <button onclick="filterPayments('unpaid')" id="tab-unpaid" class="filter-tab">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        Pending
+      </button>
+    </div>
 
-        <!-- Filter tabs -->
-        <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;">
-          <button onclick="filterPayments('all')" id="tab-all"
-                  class="btn btn-secondary" style="font-size:.8rem;padding:.35rem .9rem;">All</button>
-          <button onclick="filterPayments('paid')" id="tab-paid"
-                  class="btn btn-secondary" style="font-size:.8rem;padding:.35rem .9rem;">✅ Paid</button>
-          <button onclick="filterPayments('unpaid')" id="tab-unpaid"
-                  class="btn btn-secondary" style="font-size:.8rem;padding:.35rem .9rem;">⏳ Unpaid</button>
+    <!-- Payments List -->
+    <div class="earnings-list-card">
+      <div class="earnings-list" id="paymentList">
+        {% for b in bookings %}
+        <div class="earnings-item payment-item {% if b.payment %}is-paid{% else %}is-unpaid{% endif %}">
+          <div class="earnings-item-header">
+            <div class="ride-route">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="10" r="3"/>
+                <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/>
+              </svg>
+              <span class="route-text">
+                <strong>{{ b.ride_request.pickup_location }}</strong>
+                <svg class="route-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+                <strong>{{ b.ride_request.dropoff_location }}</strong>
+              </span>
+            </div>
+           
+            {% if b.payment %}
+            <span class="payment-status status-paid">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Paid
+            </span>
+            {% else %}
+            <span class="payment-status status-pending">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              Pending
+            </span>
+            {% endif %}
+          </div>
+
+          <div class="earnings-item-details">
+            <div class="detail-row">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span class="detail-label">Customer:</span>
+              <span class="detail-value">{{ b.ride_request.customer.username }}</span>
+            </div>
+           
+            <div class="detail-row">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span class="detail-label">Date:</span>
+              <span class="detail-value">{{ b.confirmed_at|date:"M d, Y · H:i" }}</span>
+            </div>
+
+            <div class="detail-row">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              <span class="detail-label">Status:</span>
+              <span class="detail-value status-badge-{{ b.status }}">{{ b.status|title }}</span>
+            </div>
+          </div>
+
+          {% if b.payment %}
+          <div class="payment-info-box">
+            <div class="payment-amount">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+              <span class="amount-value">৳{{ b.payment.amount }}</span>
+            </div>
+            <div class="payment-method-info">
+              <span class="payment-method-badge method-{{ b.payment.method }}">
+                {{ b.payment.get_method_display }}
+              </span>
+              <span class="payment-date">{{ b.payment.paid_at|date:"M d, Y" }}</span>
+            </div>
+          </div>
+          {% else %}
+          <div class="pending-payment-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <p class="pending-text">Waiting for customer payment</p>
+          </div>
+          {% endif %}
         </div>
-
-        <ul class="list" id="paymentList">
-          {% for b in bookings %}
-            <li class="payment-item {% if b.payment %}is-paid{% else %}is-unpaid{% endif %}"
-                style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;">
-              <div style="flex:1;min-width:0;">
-                <strong>{{ b.ride_request.pickup_location }}</strong> → {{ b.ride_request.dropoff_location }}
-                <br>
-                <small style="color:var(--color-text-muted,#888);">
-                  Customer: {{ b.ride_request.customer.username }}
-                  &nbsp;·&nbsp;{{ b.confirmed_at|date:"Y-m-d H:i" }}
-                  &nbsp;·&nbsp;{{ b.status|title }}
-                </small>
-              </div>
-
-              {% if b.payment %}
-                <div style="text-align:right;flex-shrink:0;">
-                  <span style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(34,197,94,.15);color:#22c55e;font-size:.8rem;font-weight:700;padding:.3rem .75rem;border-radius:999px;">
-                    ✅ Paid
-                  </span>
-                  <br>
-                  <small style="color:var(--color-text-muted,#888);">
-                    via {{ b.payment.get_method_display }}
-                    &nbsp;·&nbsp;{{ b.payment.paid_at|date:"Y-m-d H:i" }}
-                  </small>
-                </div>
-              {% else %}
-                <span style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(251,191,36,.12);color:#f59e0b;font-size:.8rem;font-weight:700;padding:.3rem .75rem;border-radius:999px;flex-shrink:0;">
-                  ⏳ Unpaid
-                </span>
-              {% endif %}
-            </li>
-          {% empty %}
-            <li>No bookings yet.</li>
-          {% endfor %}
-        </ul>
+        {% empty %}
+        <div class="empty-earnings-state">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18.4 10c-.3-.8-1-1.4-1.9-1.4H7.5c-.9 0-1.6.6-1.9 1.4L3.5 11.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"/>
+            <circle cx="7" cy="17" r="2"/>
+            <circle cx="17" cy="17" r="2"/>
+          </svg>
+          <h3 class="empty-title">No Rides Yet</h3>
+          <p class="empty-description">Your completed rides and earnings will appear here</p>
+        </div>
+        {% endfor %}
       </div>
     </div>
+
   </div>
-</section>
+</div>
 
 <script>
-  function filterPayments(type) {
-    document.querySelectorAll('.payment-item').forEach(el => {
-      if (type === 'all') el.style.display = '';
-      else if (type === 'paid') el.style.display = el.classList.contains('is-paid') ? '' : 'none';
-      else el.style.display = el.classList.contains('is-unpaid') ? '' : 'none';
-    });
-    ['all','paid','unpaid'].forEach(t => {
-      document.getElementById('tab-'+t).style.opacity = t === type ? '1' : '.5';
-    });
-  }
-  filterPayments('all');
+function filterPayments(type) {
+  const items = document.querySelectorAll('.payment-item');
+  const tabs = document.querySelectorAll('.filter-tab');
+ 
+  items.forEach(el => {
+    if (type === 'all') {
+      el.style.display = '';
+    } else if (type === 'paid') {
+      el.style.display = el.classList.contains('is-paid') ? '' : 'none';
+    } else {
+      el.style.display = el.classList.contains('is-unpaid') ? '' : 'none';
+    }
+  });
+ 
+  tabs.forEach(tab => {
+    tab.classList.remove('active');
+  });
+  document.getElementById('tab-' + type).classList.add('active');
+}
+
+// Initialize with all rides shown
+filterPayments('all');
 </script>
 {% endblock %}
