@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}My Reviews - Rent a Driver{% endblock %}
+
+{% block content %}
+<section class="driver-reviews-page">
+  <div class="driver-reviews-container">
+   
+    <!-- Header -->
+    <div class="reviews-header">
+      <div class="reviews-header-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      </div>
+      <h1 class="reviews-title">My Reviews & Ratings</h1>
+      <p class="reviews-subtitle">See what customers are saying about you</p>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="reviews-stats-grid">
+      <div class="review-stat-card stat-average">
+        <div class="stat-icon-wrapper">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Average Rating</div>
+          <div class="stat-value">{{ avg_rating }}</div>
+          <div class="stat-stars">
+            {% for i in "12345" %}
+              {% if forloop.counter <= avg_rating %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              {% else %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="review-stat-card stat-total">
+        <div class="stat-icon-wrapper">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Total Reviews</div>
+          <div class="stat-value">{{ total_reviews }}</div>
+        </div>
+      </div>
+
+      <div class="review-stat-card stat-distribution">
+        <div class="stat-content-full">
+          <div class="stat-label">Rating Distribution</div>
+          <div class="rating-bars">
+            {% for rating, data in rating_distribution.items reversed %}
+              <div class="rating-bar-row">
+                <span class="rating-label">{{ rating }}★</span>
+                <div class="rating-bar-bg">
+                  <div class="rating-bar-fill" style="width: {{ data.percentage }}%"></div>
+                </div>
+                <span class="rating-count">{{ data.count }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reviews List -->
+    <div class="reviews-content-card">
+      <div class="reviews-content-header">
+        <h2 class="section-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          Customer Feedback
+        </h2>
+      </div>
+
+      <div class="reviews-list">
+        {% for review in reviews %}
+          <div class="review-card">
+            <div class="review-card-header">
+              <div class="customer-info">
+                <div class="customer-avatar">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
+                <div class="customer-details">
+                  <div class="customer-name">{{ review.customer.username }}</div>
+                  <div class="review-date">{{ review.created_at|date:"M d, Y · H:i" }}</div>
+                </div>
+              </div>
+              <div class="review-rating-display">
+                {% for i in "12345" %}
+                  {% if forloop.counter <= review.rating %}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  {% else %}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  {% endif %}
+                {% endfor %}
+                <span class="rating-number">{{ review.rating }}.0</span>
+              </div>
+            </div>
+
+            <div class="review-card-body">
+              <div class="ride-info">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="10" r="3"/>
+                  <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/>
+                </svg>
+                <span class="ride-route">
+                  {{ review.booking.ride_request.pickup_location }} → {{ review.booking.ride_request.dropoff_location }}
+                </span>
+              </div>
+
+              {% if review.feedback %}
+                <p class="review-feedback">{{ review.feedback }}</p>
+              {% else %}
+                <p class="review-feedback no-feedback">No written feedback provided</p>
+              {% endif %}
+
+              {% if review.image %}
+                <div class="review-image-wrapper">
+                  <img src="{{ review.image.url }}" alt="Review image" class="review-image" />
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% empty %}
+          <div class="empty-reviews-state">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <h3>No Reviews Yet</h3>
+            <p>Complete more rides to start receiving customer reviews</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const navDriverReviews = document.getElementById('navDriverReviews');
+    if (navDriverReviews) {
+      navDriverReviews.classList.add('active');
+    }
+  });
+</script>
+{% endblock %}

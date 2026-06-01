@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Edit Ride Request - Rent a Driver{% endblock %}
+
+{% block content %}
+<section class="edit-ride-section">
+  <div class="container">
+   
+    <!-- Back Button -->
+    <div class="back-btn-wrapper">
+      <a href="{% url 'customer_dashboard' %}" class="btn btn-secondary back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to Dashboard
+      </a>
+    </div>
+
+    <!-- Main Card -->
+    <div class="card create-card enhanced-form">
+      <div class="form-header">
+        <h2>✏️ Edit Ride Request</h2>
+        <p class="form-subtitle">Update your ride details</p>
+      </div>
+     
+      <form method="post" action="{% url 'edit_ride_request' ride.id %}" class="ride-request-form">
+        {% csrf_token %}
+       
+        <div class="form-group">
+          <label for="pickup" class="form-label">
+            <svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+            Pickup Location
+          </label>
+          <input
+            type="text"
+            id="pickup"
+            name="pickup"
+            class="form-input"
+            placeholder="Enter your pickup address"
+            value="{{ ride.pickup_location }}"
+            required
+            autofocus
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="dropoff" class="form-label">
+            <svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            Dropoff Location
+          </label>
+          <input
+            type="text"
+            id="dropoff"
+            name="dropoff"
+            class="form-input"
+            placeholder="Enter your destination address"
+            value="{{ ride.dropoff_location }}"
+            required
+          />
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-large">
+            <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Save Changes
+          </button>
+          <a href="{% url 'customer_dashboard' %}" class="btn btn-secondary btn-large">
+            Cancel
+          </a>
+        </div>
+      </form>
+     
+      {% if messages %}
+        <ul class="msg mt-3">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <!-- Info Card -->
+    <div class="card warning-card">
+      <div class="warning-card-inner">
+        <h4>⚠️ Note</h4>
+        <p>
+          You can only edit pending ride requests. Once a driver accepts your request, you won't be able to make changes.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Auto-focus on first input
+  const pickupInput = document.getElementById('pickup');
+  if (pickupInput) {
+    pickupInput.focus();
+  }
+});
+</script>
+
+{% endblock %}

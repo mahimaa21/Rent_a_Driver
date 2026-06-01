@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Create Ride Request - Rent a Driver{% endblock %}
+
+{% block content %}
+<section class="create-ride-section">
+  <div class="container">
+   
+    <!-- Back Button -->
+    <div class="back-btn-wrapper">
+      <a href="{% url 'customer_dashboard' %}" class="btn btn-secondary back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to Dashboard
+      </a>
+    </div>
+
+    <!-- Main Card -->
+    <div class="card create-card enhanced-form">
+      <div class="form-header">
+        <h2>🚗 Create a Ride Request</h2>
+        <p class="form-subtitle">Fill in the details for your ride request</p>
+      </div>
+     
+      <form method="post" action="{% url 'create_ride_request' %}" class="ride-request-form">
+        {% csrf_token %}
+       
+        <div class="form-group">
+          <label for="pickup" class="form-label">
+            <svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+            Pickup Location
+          </label>
+          <input
+            type="text"
+            id="pickup"
+            name="pickup"
+            class="form-input"
+            placeholder="Enter your pickup address"
+            required
+            autofocus
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="dropoff" class="form-label">
+            <svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            Dropoff Location
+          </label>
+          <input
+            type="text"
+            id="dropoff"
+            name="dropoff"
+            class="form-input"
+            placeholder="Enter your destination address"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="carName" class="form-label">
+            <svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14,2 14,8 20,8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10,9 9,9 8,9"/>
+            </svg>
+            Your Car Details
+          </label>
+          <input
+            type="text"
+            id="carName"
+            name="carName"
+            class="form-input"
+            placeholder="e.g., Honda Civic, Toyota Camry"
+            required
+          />
+          <small class="form-help">Please provide your car make and model</small>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-large w-100">
+            <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+            Create Ride Request
+          </button>
+        </div>
+      </form>
+     
+      {% if messages %}
+        <ul class="msg mt-3">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <!-- Info Card -->
+    <div class="card info-card">
+      <div class="info-card-inner">
+        <h4>💡 How it works</h4>
+        <ul class="info-list">
+          <li><span>1️⃣</span><span>Enter your pickup and dropoff locations</span></li>
+          <li><span>2️⃣</span><span>Provide your car details</span></li>
+          <li><span>3️⃣</span><span>Nearby drivers will see your request</span></li>
+          <li><span>4️⃣</span><span>Accept a driver and track your ride</span></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Auto-focus on first input
+  const pickupInput = document.getElementById('pickup');
+  if (pickupInput) {
+    pickupInput.focus();
+  }
+});
+</script>
+
+{% endblock %}

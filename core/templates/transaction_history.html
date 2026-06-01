@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}Transaction History - Rent a Driver{% endblock %}
+
+{% block content %}
+<section class="transaction-history-page">
+  <div class="container transaction-history-container">
+
+    <!-- Back Button -->
+    <div class="back-btn-wrapper">
+      <a href="{% url 'payments:payments' %}" class="btn btn-secondary back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to Payments
+      </a>
+    </div>
+
+    <!-- Page Header -->
+    <div class="transaction-history-header">
+      <div class="header-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <h1 class="page-title">Transaction History</h1>
+      <p class="page-subtitle">Complete record of all your payment transactions</p>
+      {% if paid_payments %}
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-value">{{ paid_payments|length }}</span>
+            <span class="stat-label">Total Transactions</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">৳{% widthratio paid_payments|length 1 1 %}{{ paid_payments.0.amount|default:"0" }}</span>
+            <span class="stat-label">Last Payment</span>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Transactions Content -->
+    <div class="transactions-content-card">
+      {% if paid_payments %}
+        <!-- Filters (Optional - can be added later) -->
+        <div class="transactions-filters">
+          <div class="filter-group">
+            <label class="filter-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              Filter by Method
+            </label>
+            <select class="filter-select" id="methodFilter" onchange="filterTransactions()">
+              <option value="all">All Methods</option>
+              <option value="bkash">bKash</option>
+              <option value="nagad">Nagad</option>
+              <option value="bank">Bank Transfer</option>
+            </select>
+          </div>
+          <div class="filter-info">
+            <span class="result-count">Showing <strong>{{ paid_payments|length }}</strong> transactions</span>
+          </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="transactions-table-wrapper">
+          <table class="transactions-table">
+            <thead>
+              <tr>
+                <th class="th-number">#</th>
+                <th class="th-route">Route</th>
+                <th class="th-driver">Driver</th>
+                <th class="th-method">Payment Method</th>
+                <th class="th-account">Account</th>
+                <th class="th-amount">Amount</th>
+                <th class="th-date">Date & Time</th>
+                <th class="th-status">Status</th>
+              </tr>
+            </thead>
+            <tbody id="transactionsBody">
+              {% for p in paid_payments %}
+                <tr class="transaction-row" data-method="{{ p.method }}">
+                  <td class="td-number">{{ forloop.counter }}</td>
+                  <td class="td-route">
+                    <div class="route-cell">
+                      <span class="route-from">{{ p.booking.ride_request.pickup_location }}</span>
+                      <svg class="route-arrow-sm" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                      </svg>
+                      <span class="route-to">{{ p.booking.ride_request.dropoff_location }}</span>
+                    </div>
+                  </td>
+                  <td class="td-driver">
+                    <div class="driver-cell">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                      </svg>
+                      <span>
+                        {% if p.booking.driver.driverprofile.full_name %}
+                          {{ p.booking.driver.driverprofile.full_name }}
+                        {% else %}
+                          {{ p.booking.driver.username }}
+                        {% endif %}
+                      </span>
+                    </div>
+                  </td>
+                  <td class="td-method">
+                    {% if p.method == 'bkash' %}
+                      <span class="method-badge method-bkash">
+                        <span class="method-icon">bK</span>
+                        bKash
+                      </span>
+                    {% elif p.method == 'nagad' %}
+                      <span class="method-badge method-nagad">
+                        <span class="method-icon">NG</span>
+                        Nagad
+                      </span>
+                    {% else %}
+                      <span class="method-badge method-bank">
+                        <span class="method-icon">🏦</span>
+                        Bank
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td class="td-account">
+                    <code class="account-code">{{ p.account_number }}</code>
+                  </td>
+                  <td class="td-amount">
+                    <span class="amount-value">৳{{ p.amount }}</span>
+                  </td>
+                  <td class="td-date">
+                    <div class="date-cell">
+                      <span class="date-main">{{ p.paid_at|date:"F d, Y" }}</span>
+                      <span class="date-time">{{ p.paid_at|date:"H:i" }}</span>
+                    </div>
+                  </td>
+                  <td class="td-status">
+                    <span class="status-badge status-paid">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      Paid
+                    </span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Summary Card -->
+        <div class="summary-card">
+          <h3 class="summary-title">Payment Summary</h3>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <span class="summary-label">Total Transactions</span>
+              <span class="summary-value">{{ paid_payments|length }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Total Amount Paid</span>
+              <span class="summary-value summary-amount">৳{% widthratio paid_payments|length 1 1 %}0.00</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Most Used Method</span>
+              <span class="summary-value">bKash</span>
+            </div>
+          </div>
+        </div>
+
+      {% else %}
+        <!-- Empty State -->
+        <div class="empty-state-large">
+          <svg class="empty-icon-large" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          <h2 class="empty-title-large">No Transaction History</h2>
+          <p class="empty-description-large">You haven't made any payments yet. Complete a ride and make a payment to see your transaction history here.</p>
+          <a href="{% url 'payments:payments' %}" class="btn btn-primary btn-large">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+            Go to Payments
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+
+<script>
+function filterTransactions() {
+  const filter = document.getElementById('methodFilter').value;
+  const rows = document.querySelectorAll('.transaction-row');
+  let visibleCount = 0;
+ 
+  rows.forEach(row => {
+    const method = row.getAttribute('data-method');
+    if (filter === 'all' || method === filter) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+ 
+  document.querySelector('.result-count strong').textContent = visibleCount;
+}
+</script>
+
+{% endblock %}
