@@ -6,6 +6,8 @@ from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.db.models import Count, Avg, Q
+from django.db import transaction, IntegrityError
+import logging
 from math import radians, sin, cos, sqrt, atan2
 from urllib.parse import urlencode
 from urllib.request import urlopen, Request
