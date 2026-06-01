@@ -122,3 +122,29 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.sender.username}: {self.text[:20]}..."
+
+
+# Notification
+class Notification(models.Model):
+    NOTIFICATION_TYPES = (
+        ('ride_accepted', 'Ride Accepted'),
+        ('ride_completed', 'Ride Completed'),
+        ('ride_cancelled', 'Ride Cancelled'),
+        ('driver_assigned', 'Driver Assigned'),
+        ('payment_received', 'Payment Received'),
+        ('review_received', 'Review Received'),
+    )
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
+    notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=100)
+    message = models.TextField()
+    ride_request = models.ForeignKey(RideRequest, on_delete=models.CASCADE, null=True, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"

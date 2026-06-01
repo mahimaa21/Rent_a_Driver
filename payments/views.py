@@ -115,4 +115,37 @@ def driver_payment_history(request):
         .prefetch_related('payment')
         .order_by('-confirmed_at')
     )
-    return render(request, 'driver_payment_history.html', {'bookings': bookings})
+    
+    # Calculate stats
+    total_rides = bookings.count()
+    paid_rides = sum(1 for b in bookings if hasattr(b, 'payment'))
+    unpaid_rides = total_rides - paid_rides
+    total_earnings = sum(b.payment.amount for b in bookings if hasattr(b, 'payment'))
+    
+    return render(request, 'driver_payment_history.html', {
+        'bookings': bookings,
+        'total_rides': total_rides,
+        'paid_rides': paid_rides,
+        'unpaid_rides': unpaid_rides,
+        'total_earnings': total_earnings,
+    })
+
+
+@login_required
+def transaction_history(request):
+    """Dedicated page for customer transaction history."""
+    if request.user.role != 'customer':
+        return HttpResponseForbidden("Only customers can access transaction history.")
+
+    paid_payments = (
+        Payment.objects.filter(booking__ride_request__customer=request.user)
+        .select_related(
+            'booking', 'booking__ride_request',
+            'booking__driver', 'booking__driver__driverprofile',
+        )
+        .order_by('-paid_at')
+    )
+
+    return render(request, 'transaction_history.html', {
+        'paid_payments': paid_payments,
+    })

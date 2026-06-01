@@ -9,6 +9,7 @@ from .models import (
 	EmergencyAlert,
 	DriverReview,
 	ChatMessage,
+	Notification,
 )
 
 
@@ -83,3 +84,11 @@ class DriverReviewAdmin(admin.ModelAdmin):
 class ChatMessageAdmin(admin.ModelAdmin):
 	list_display = ("booking", "sender", "text", "created_at")
 	search_fields = ("booking__id", "sender__username", "text")
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+	list_display = ("user", "notification_type", "title", "is_read", "created_at")
+	list_filter = ("notification_type", "is_read")
+	search_fields = ("user__username", "title", "message")
+	ordering = ("-created_at",)

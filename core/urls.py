@@ -13,6 +13,8 @@ urlpatterns = [
 
   # ---------- RIDE REQUEST ----------
   path("customer/dashboard/", views.customer_dashboard, name="customer_dashboard"),
+  path("rides/create/", views.create_ride_request_view, name="create_ride_request"),
+  path("rides/all/", views.all_ride_requests_view, name="all_ride_requests"),
   path("rides/cancel/<int:ride_request_id>/", views.cancel_ride_request, name="cancel_ride_request"),
   path("rides/edit/<int:ride_request_id>/", views.edit_ride_request, name="edit_ride_request"),
   path("rides/suggest/<int:ride_request_id>/", views.suggest_drivers, name="suggest_drivers"),
@@ -32,6 +34,8 @@ urlpatterns = [
   path("reviews/create/<int:booking_id>/", views.create_review, name="create_review"),
   path("reviews/delete/<int:review_id>/", views.delete_review, name="delete_review"),
   path("reviews/driver/<int:driver_id>/", views.list_driver_reviews, name="list_driver_reviews"),
+  path("reviews/all/", views.all_reviews_view, name="all_reviews"),
+  path("reviews/my-reviews/", views.driver_reviews_view, name="driver_reviews"),
 
   # ---------- LEADERBOARD ----------
   path("leaderboard/", views.driver_leaderboard_view, name="leaderboard"),
@@ -44,6 +48,11 @@ urlpatterns = [
 
   # ---------- USER LOCATION ----------
   path("user/update-location/", views.update_location, name="update_location"),
+
+  # ---------- NOTIFICATIONS ----------
+  path("notifications/get/", views.get_notifications, name="get_notifications"),
+  path("notifications/<int:notification_id>/read/", views.mark_notification_read, name="mark_notification_read"),
+  path("notifications/read-all/", views.mark_all_notifications_read, name="mark_all_notifications_read"),
 
 ]
 urlpatterns += [

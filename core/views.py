@@ -22,6 +22,7 @@ from .models import (
     EmergencyAlert,
     DriverReview,
     ChatMessage,
+    Notification,
 )
 from .models import Account
 
@@ -185,7 +186,8 @@ def delete_profile_picture(request):
 # RIDE REQUEST
 
 @login_required
-def customer_dashboard(request):
+def create_ride_request_view(request):
+    """Dedicated page for creating a new ride request."""
     if request.user.role != "customer":
         return redirect("driver_dashboard")
     if request.method == "POST":
@@ -197,8 +199,64 @@ def customer_dashboard(request):
             pickup_location=pickup,
             dropoff_location=dropoff,
         )
-        messages.success(request, "Ride request created.")
+        messages.success(request, "Ride request created successfully!")
         return redirect("customer_dashboard")
+    return render(request, "create_ride_request.html")
+
+
+@login_required
+def all_ride_requests_view(request):
+    """Dedicated page showing all ride requests for the customer."""
+    if request.user.role != "customer":
+        return redirect("driver_dashboard")
+    rides = RideRequest.objects.filter(customer=request.user).order_by("-created_at")
+    customer_bookings = Booking.objects.filter(ride_request__customer=request.user).order_by("-confirmed_at")
+    
+    # Get accepted ride info
+    accepted_ride_info = None
+    for ride in rides:
+        if ride.status == "accepted":
+            try:
+                booking = ride.booking
+                driver_profile = DriverProfile.objects.get(user=booking.driver)
+                accepted_ride_info = {
+                    "ride": ride,
+                    "driver_name": driver_profile.full_name or booking.driver.username,
+                    "driver_phone": driver_profile.phone_number,
+                    "driver_picture": driver_profile.profile_picture,
+                    "driver_lat": driver_profile.current_lat,
+                    "driver_lng": driver_profile.current_lng,
+                }
+                break
+            except:
+                pass
+    
+    return render(request, "all_ride_requests.html", {
+        "rides": rides,
+        "customer_bookings": customer_bookings,
+        "accepted_ride_info": accepted_ride_info,
+    })
+
+
+@login_required
+def all_reviews_view(request):
+    """Dedicated page showing all reviews for the customer."""
+    if request.user.role != "customer":
+        return redirect("driver_dashboard")
+    customer_bookings = Booking.objects.filter(
+        ride_request__customer=request.user,
+        status='completed'
+    ).order_by("-confirmed_at")
+    
+    return render(request, "all_reviews.html", {
+        "customer_bookings": customer_bookings,
+    })
+
+
+@login_required
+def customer_dashboard(request):
+    if request.user.role != "customer":
+        return redirect("driver_dashboard")
     rides = RideRequest.objects.filter(customer=request.user).order_by("-created_at")
     customer_bookings = Booking.objects.filter(ride_request__customer=request.user).order_by("-confirmed_at")
 
@@ -266,7 +324,17 @@ def create_booking(request, ride_request_id):
     ride = get_object_or_404(RideRequest, id=ride_request_id, status="pending")
     ride.status = "accepted"
     ride.save()
-    Booking.objects.create(ride_request=ride, driver=request.user)
+    booking = Booking.objects.create(ride_request=ride, driver=request.user)
+    
+    # Create notification for customer
+    create_notification(
+        user=ride.customer,
+        notification_type='ride_accepted',
+        title='🚗 Ride Accepted!',
+        message=f'Driver {request.user.username} has accepted your ride request from {ride.pickup_location} to {ride.dropoff_location}.',
+        ride_request=ride
+    )
+    
     messages.success(request, "Booking created.")
     return redirect("driver_dashboard")
 
@@ -290,6 +358,25 @@ def update_booking_status(request, booking_id):
             booking.save()
             booking.ride_request.status = ("completed" if new_status == "completed" else "cancelled")
             booking.ride_request.save()
+            
+            # Create notification for customer
+            if new_status == "completed":
+                create_notification(
+                    user=booking.ride_request.customer,
+                    notification_type='ride_completed',
+                    title='✅ Ride Completed!',
+                    message=f'Your ride from {booking.ride_request.pickup_location} to {booking.ride_request.dropoff_location} has been completed. Please make payment.',
+                    ride_request=booking.ride_request
+                )
+            elif new_status == "cancelled":
+                create_notification(
+                    user=booking.ride_request.customer,
+                    notification_type='ride_cancelled',
+                    title='❌ Ride Cancelled',
+                    message=f'Your ride from {booking.ride_request.pickup_location} to {booking.ride_request.dropoff_location} has been cancelled by the driver.',
+                    ride_request=booking.ride_request
+                )
+            
             messages.success(request, f"Booking marked as {new_status}.")
     return redirect("driver_dashboard")
 
@@ -745,3 +832,118 @@ def driver_dashboard(request):
         "total_completed": total_completed,
         "total_ongoing": total_ongoing,
     })
+
+
+
+# ============================================
+# NOTIFICATION VIEWS
+# ============================================
+
+@login_required
+def get_notifications(request):
+    """API endpoint to get user notifications"""
+    from django.http import JsonResponse
+    
+    try:
+        notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:10]
+        unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+        
+        notifications_data = [{
+            'id': n.id,
+            'type': n.notification_type,
+            'title': n.title,
+            'message': n.message,
+            'is_read': n.is_read,
+            'created_at': n.created_at.strftime('%b %d, %Y · %H:%M'),
+            'ride_id': n.ride_request.id if n.ride_request else None,
+        } for n in notifications]
+        
+        return JsonResponse({
+            'notifications': notifications_data,
+            'unread_count': unread_count
+        })
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e),
+            'notifications': [],
+            'unread_count': 0
+        }, status=500)
+
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """Mark a notification as read"""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({'success': True})
+    
+    return JsonResponse({'success': False}, status=400)
+
+
+@login_required
+def mark_all_notifications_read(request):
+    """Mark all notifications as read"""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({'success': True})
+    
+    return JsonResponse({'success': False}, status=400)
+
+
+def create_notification(user, notification_type, title, message, ride_request=None):
+    """Helper function to create notifications"""
+    Notification.objects.create(
+        user=user,
+        notification_type=notification_type,
+        title=title,
+        message=message,
+        ride_request=ride_request
+    )
+
+
+
+@login_required
+def driver_reviews_view(request):
+    """Dedicated page showing all reviews for the driver"""
+    if request.user.role != "driver":
+        return HttpResponseForbidden("Only drivers can view this page")
+    
+    # Get all reviews for this driver
+    reviews = DriverReview.objects.filter(driver=request.user).order_by('-created_at')
+    
+    # Calculate statistics
+    total_reviews = reviews.count()
+    if total_reviews > 0:
+        avg_rating = sum(r.rating for r in reviews) / total_reviews
+        rating_distribution = {}
+        for rating in [5, 4, 3, 2, 1]:
+            count = reviews.filter(rating=rating).count()
+            percentage = (count / total_reviews * 100) if total_reviews > 0 else 0
+            rating_distribution[rating] = {
+                'count': count,
+                'percentage': round(percentage, 1)
+            }
+    else:
+        avg_rating = 0
+        rating_distribution = {
+            5: {'count': 0, 'percentage': 0},
+            4: {'count': 0, 'percentage': 0},
+            3: {'count': 0, 'percentage': 0},
+            2: {'count': 0, 'percentage': 0},
+            1: {'count': 0, 'percentage': 0},
+        }
+    
+    context = {
+        'reviews': reviews,
+        'total_reviews': total_reviews,
+        'avg_rating': round(avg_rating, 1) if avg_rating else 0,
+        'rating_distribution': rating_distribution,
+    }
+    
+    return render(request, 'driver_reviews.html', context)
