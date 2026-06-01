@@ -2,138 +2,257 @@
 {% block title %}Emergency - Rent a Driver{% endblock %}
 
 {% block content %}
-<section class="dashboard">
-  <div class="container">
-    <div class="emergency-header">
-      <h2 class="emergency-title">
-        <svg class="emergency-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
+<div class="emergency-page">
+  <div class="emergency-container">
+   
+    <!-- Hero Section -->
+    <div class="emergency-hero">
+      <div class="emergency-hero-icon">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
-        Emergency Center
-      </h2>
       </div>
-           
-
-      <p class="emergency-subtitle">Quick access to emergency services and alerts</p>
+      <h1 class="emergency-hero-title">Emergency Center</h1>
+      <p class="emergency-hero-subtitle">Quick access to emergency services and safety features</p>
     </div>
 
-    <div class="emergency-grid">
-     
-      <div class="card emergency-contact-card">
-        <div class="card-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-          </svg>
-        </div>
-        <h3>Emergency Contact</h3>
-        <p class="card-description">Set up your emergency contact for quick access during critical situations</p>
-       
-        {% if contact %}
-          <div class="current-contact bg-green-50 border border-green-200 rounded p-3 mb-3">
-            <p class="text-sm">Current contact: <strong>{{ contact.phone_number }}</strong></p>
-            <form method="post" action="{% url 'delete_emergency_contact' %}" class="inline">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-secondary btn-sm">Delete Contact</button>
-            </form>
-          </div>
-        {% endif %}
+    <!-- Messages -->
+    {% if messages %}
+    <div class="emergency-messages">
+      {% for message in messages %}
+      <div class="emergency-alert-message">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
-        <form method="post" action="{% url 'set_emergency_contact' %}" class="emergency-form">
+    <!-- SOS Button Section -->
+    <div class="sos-section">
+      <div class="sos-card">
+        <div class="sos-header">
+          <h2 class="sos-title">Emergency SOS</h2>
+          <p class="sos-description">Press and hold to trigger emergency alert</p>
+        </div>
+       
+        <form method="post" action="{% url 'trigger_alert' %}" id="sosForm">
           {% csrf_token %}
-          <div class="form-group">
-            <label for="emergencyPhone" class="form-label">
-              <svg class="label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+          <button type="button" class="sos-button" id="sosButton">
+            <div class="sos-button-inner">
+              <svg class="sos-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
-              Emergency Phone Number
-            </label>
-            <input type="tel" name="phone_number" class="form-input" placeholder="e.g. +880 1XXX-XXXXXX" value="{% if contact %}{{ contact.phone_number }}{% endif %}" required />
-            <small class="form-help">Include country code for international numbers</small>
-          </div>
-          <button type="submit" class="btn btn-primary btn-save">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-              <polyline points="17,21 17,13 7,13 7,21"/>
-              <polyline points="7,3 7,8 15,8"/>
-            </svg>
-            Save Contact
+              <span class="sos-text">SOS</span>
+            </div>
+            <div class="sos-ripple"></div>
           </button>
         </form>
-        <div id="emergencyMsg" class="msg"></div>
-      </div>
-
-     
-      <div class="card emergency-alert-card">
-        <div class="card-icon alert-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
-          </svg>
-        </div>
-        <h3>Emergency Alert</h3>
-        <p class="card-description">Trigger an immediate alert to notify emergency contacts and authorities</p>
        
-        <div class="alert-section">
-          <form method="post" action="{% url 'trigger_alert' %}">
-            {% csrf_token %}
-            <button class="btn btn-danger btn-alert">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            Trigger Emergency Alert
-            </button>
-          </form>
-          <p class="alert-warning">⚠️ Use only in genuine emergency situations</p>
-        </div>
-        {% if messages %}
-          <ul class="msg">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
-        {% endif %}
-      </div>
-
-      
-      <div class="card alert-history-card">
-        <div class="card-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12,6 12,12 16,14"/>
+        <div class="sos-warning">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
-        </div>
-        <h3>Alert History</h3>
-        <p class="card-description">View your recent emergency alerts and their status</p>
-       
-        <div class="history-container">
-          <ul class="alert-history-list">
-            {% for a in alerts %}
-              <li>{{ a.triggered_at|date:"Y-m-d H:i" }} — {{ a.contact.phone_number }} — {{ a.status|title }}</li>
-            {% empty %}
-              <li>No alerts yet.</li>
-            {% endfor %}
-          </ul>
-          <div class="empty-history" {% if alerts %}style="display:none;"{% endif %}>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-              <line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-            <h4>No Emergency Alerts</h4>
-            <p>Your emergency alert history will appear here</p>
-          </div>
+          Use only in genuine emergency situations
         </div>
       </div>
     </div>
+
+    <!-- Emergency Contact & History Grid -->
+    <div class="emergency-grid">
+     
+      <!-- Emergency Contact Card -->
+      <div class="emergency-card contact-card">
+        <div class="card-header-emergency">
+          <div class="card-icon-emergency">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="card-title-emergency">Emergency Contact</h3>
+            <p class="card-subtitle-emergency">Set up your emergency contact</p>
+          </div>
+        </div>
+
+        {% if contact %}
+        <div class="current-contact-display">
+          <div class="contact-info">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+            <div>
+              <p class="contact-label">Current Contact</p>
+              <p class="contact-number">{{ contact.phone_number }}</p>
+            </div>
+          </div>
+          <form method="post" action="{% url 'delete_emergency_contact' %}" class="delete-contact-form">
+            {% csrf_token %}
+            <button type="submit" class="btn-delete-contact">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              Remove
+            </button>
+          </form>
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'set_emergency_contact' %}" class="emergency-contact-form">
+          {% csrf_token %}
+          <div class="form-group-emergency">
+            <label class="form-label-emergency">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              name="phone_number"
+              class="form-input-emergency"
+              placeholder="+880 1XXX-XXXXXX"
+              value="{% if contact %}{{ contact.phone_number }}{% endif %}"
+              required
+            />
+            <small class="form-help-emergency">Include country code for international numbers</small>
+          </div>
+          <button type="submit" class="btn-save-contact">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            {% if contact %}Update Contact{% else %}Save Contact{% endif %}
+          </button>
+        </form>
+      </div>
+
+      <!-- Alert History Card -->
+      <div class="emergency-card history-card">
+        <div class="card-header-emergency">
+          <div class="card-icon-emergency">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="card-title-emergency">Alert History</h3>
+            <p class="card-subtitle-emergency">Recent emergency alerts</p>
+          </div>
+        </div>
+
+        <div class="history-list-container">
+          {% if alerts %}
+          <ul class="history-list">
+            {% for a in alerts %}
+            <li class="history-item">
+              <div class="history-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <div class="history-details">
+                <p class="history-contact">{{ a.contact.phone_number }}</p>
+                <p class="history-time">{{ a.triggered_at|date:"M d, Y · H:i" }}</p>
+              </div>
+              <span class="history-status status-{{ a.status }}">{{ a.status|title }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="empty-history-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <h4 class="empty-history-title">No Alerts Yet</h4>
+            <p class="empty-history-text">Your emergency alert history will appear here</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Safety Tips -->
+    <div class="safety-tips-card">
+      <h3 class="safety-tips-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Safety Tips
+      </h3>
+      <ul class="safety-tips-list">
+        <li>Always verify driver details before starting your ride</li>
+        <li>Share your trip details with trusted contacts</li>
+        <li>Keep your emergency contact information up to date</li>
+        <li>Use the SOS button only in genuine emergency situations</li>
+      </ul>
+    </div>
+
   </div>
-</section>
+</div>
 
 <script>
-
 document.addEventListener('DOMContentLoaded', function() {
   const emergencyNav = document.getElementById('navEmergency');
   if (emergencyNav) {
     emergencyNav.classList.add('active');
+  }
+
+  // SOS Button Hold-to-Trigger
+  const sosButton = document.getElementById('sosButton');
+  const sosForm = document.getElementById('sosForm');
+  let holdTimer;
+  let holdDuration = 0;
+  const requiredHoldTime = 2000; // 2 seconds
+
+  if (sosButton && sosForm) {
+    sosButton.addEventListener('mousedown', startHold);
+    sosButton.addEventListener('mouseup', endHold);
+    sosButton.addEventListener('mouseleave', endHold);
+    sosButton.addEventListener('touchstart', startHold);
+    sosButton.addEventListener('touchend', endHold);
+
+    function startHold(e) {
+      e.preventDefault();
+      holdDuration = 0;
+      sosButton.classList.add('holding');
+     
+      holdTimer = setInterval(() => {
+        holdDuration += 100;
+        const progress = (holdDuration / requiredHoldTime) * 100;
+        sosButton.style.setProperty('--hold-progress', progress + '%');
+       
+        if (holdDuration >= requiredHoldTime) {
+          clearInterval(holdTimer);
+          sosButton.classList.add('triggered');
+          setTimeout(() => {
+            sosForm.submit();
+          }, 300);
+        }
+      }, 100);
+    }
+
+    function endHold() {
+      clearInterval(holdTimer);
+      sosButton.classList.remove('holding');
+      sosButton.style.setProperty('--hold-progress', '0%');
+      holdDuration = 0;
+    }
   }
 });
 </script>
